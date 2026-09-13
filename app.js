@@ -650,7 +650,7 @@
     const downDistance = String(situation.downDistanceText || "").trim();
 
     return [
-      possession ? `Ball: ${possession}` : "",
+      possession ? `🏈 ${possession}` : "",
       downDistance ? `Down: ${downDistance}` : ""
     ].filter(Boolean).join(" · ");
   }
