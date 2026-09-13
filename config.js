@@ -1,6 +1,6 @@
 /*
   Weekly maintenance lives in this one object. Replace it each week with:
-  - the new key, which discards saved entries from the prior week;
+  - the new key, which makes the prior week's local state obsolete;
   - the Circa lines from the weekly picture; and
   - each player's entries and picks for that week.
 
@@ -9,6 +9,27 @@
 const CURRENT_WEEK = {
   key: "2026-week-1",
   label: "Week 1",
+  season: 2026,
+  seasonType: 2,
+  week: 1,
+  circaMatchups: [
+    ["NE", "SEA"],
+    ["SF", "LAR"],
+    ["CLE", "JAX"],
+    ["TB", "CIN"],
+    ["BAL", "IND"],
+    ["ATL", "PIT"],
+    ["BUF", "HOU"],
+    ["CHI", "CAR"],
+    ["NYJ", "TEN"],
+    ["NO", "DET"],
+    ["ARI", "LAC"],
+    ["MIA", "LV"],
+    ["WSH", "PHI"],
+    ["GB", "MIN"],
+    ["DAL", "NYG"],
+    ["DEN", "KC"]
+  ],
   circaLines: {
     Patriots: 3,
     Seahawks: -3,
@@ -91,6 +112,10 @@ window.CIRCA_CONFIG = {
   // Change CURRENT_WEEK.key when replacing the weekly entries.
   weekKey: CURRENT_WEEK.key,
   weeklyLabel: CURRENT_WEEK.label,
+  defaultSeason: CURRENT_WEEK.season,
+  defaultSeasonType: CURRENT_WEEK.seasonType,
+  defaultWeek: CURRENT_WEEK.week,
+  circaMatchups: CURRENT_WEEK.circaMatchups,
   circaLines: CURRENT_WEEK.circaLines,
 
   // Refresh live scores every 10 seconds.
@@ -102,7 +127,7 @@ window.CIRCA_CONFIG = {
   // Avoid leaving the refresh button waiting forever if the endpoint is unavailable.
   requestTimeoutMs: 12000,
 
-  // Player tabs. Each player's entries and picks are stored independently.
+  // Player tabs. Each player's entries and picks are configured independently.
   players: [
     { id: "michael-daniel", name: "Michael-Daniel" },
     { id: "rob", name: "Rob" },
@@ -115,11 +140,6 @@ window.CIRCA_CONFIG = {
   // See README.md and CODEX_HANDOFF.md for caveats and fallback strategy.
   espnScoreboardBase:
     "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard",
-
-  // Optional defaults. null = let ESPN determine current scoreboard.
-  defaultSeason: null,
-  defaultSeasonType: 2,
-  defaultWeek: null,
 
   // These are derived from CURRENT_WEEK above.
   allPicksPreset: ALL_PICKS_PRESET,

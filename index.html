@@ -47,50 +47,6 @@
         <div id="entryCards" class="entry-cards"></div>
       </section>
 
-      <section class="panel setup" aria-labelledby="setupTitle">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Your card</p>
-            <h2 id="setupTitle">Enter your contest picks</h2>
-            <p>Editing <strong id="activePlayerLabel">Michael-Daniel</strong>. One pick per line; your entered line is always used.</p>
-          </div>
-          <span class="contest-line-note">Examples: <code>Bears -3</code> <code>Steelers -3.5</code></span>
-        </div>
-
-        <div id="entryEditors" class="entry-editors"></div>
-
-        <div class="setup-actions">
-          <button id="addEntryBtn" class="secondary" type="button">+ Add entry</button>
-          <span id="saveStatus" class="save-status" role="status" aria-live="polite"></span>
-          <button id="saveBtn" type="button">Save picks</button>
-        </div>
-
-        <details class="advanced" open>
-          <summary>Scoreboard filters</summary>
-          <div class="advanced-grid">
-            <label>
-              Season <span class="label-hint">optional</span>
-              <input id="seasonInput" type="number" inputmode="numeric" min="2020" max="2100" placeholder="Auto" aria-describedby="filterHelp" />
-            </label>
-            <label>
-              Season type
-              <select id="seasonTypeInput" aria-describedby="filterHelp">
-                <option value="1">Preseason</option>
-                <option value="2" selected>Regular season</option>
-                <option value="3">Postseason</option>
-              </select>
-            </label>
-            <label>
-              Week <span class="label-hint">optional</span>
-              <input id="weekInput" type="number" inputmode="numeric" min="1" max="22" placeholder="Auto" aria-describedby="filterHelp" />
-            </label>
-          </div>
-          <div class="advanced-footer">
-            <p id="filterHelp" class="muted">Leave season and week blank to use the current NFL scoreboard. Save after changing filters.</p>
-            <button id="clearFiltersBtn" class="text-button" type="button">Use current scoreboard</button>
-          </div>
-        </details>
-      </section>
     </div>
 
     <div id="picksView" class="view-panel hidden">
@@ -101,7 +57,7 @@
             <h3 id="entryRecordsTitle">Entry records</h3>
           </div>
           <div id="entryRecords" class="entry-records" role="list" aria-live="polite">
-            <p class="empty-records">Add a pick to see its current record.</p>
+            <p class="empty-records">No picks are configured for this player.</p>
           </div>
         </section>
         <div class="table-wrap">
@@ -117,7 +73,7 @@
               </tr>
             </thead>
             <tbody id="picksBody">
-              <tr><td colspan="6" class="empty-table">Add a pick above to see its live status here.</td></tr>
+              <tr><td colspan="6" class="empty-table">No picks are configured for this player.</td></tr>
             </tbody>
           </table>
         </div>
@@ -131,8 +87,8 @@
     </p>
   </footer>
 
-  <script src="config.js?v=20260913-9"></script>
+  <script src="config.js?v=20260913-10"></script>
   <script src="providers/espn.js?v=20260913-6"></script>
-  <script src="app.js?v=20260913-14"></script>
+  <script src="app.js?v=20260913-15"></script>
 </body>
 </html>

@@ -67,12 +67,10 @@
   }
 
   const els = {
-    entryEditors: document.getElementById("entryEditors"),
     playerTabs: document.getElementById("playerTabs"),
     viewTabs: document.getElementById("viewTabs"),
     entriesView: document.getElementById("entriesView"),
     picksView: document.getElementById("picksView"),
-    activePlayerLabel: document.getElementById("activePlayerLabel"),
     activePlayerName: document.getElementById("activePlayerName"),
     entryCards: document.getElementById("entryCards"),
     picksBody: document.getElementById("picksBody"),
@@ -82,14 +80,7 @@
     fontSizeValue: document.getElementById("fontSizeValue"),
     lastUpdated: document.getElementById("lastUpdated"),
     refreshBtn: document.getElementById("refreshBtn"),
-    saveBtn: document.getElementById("saveBtn"),
-    saveStatus: document.getElementById("saveStatus"),
-    addEntryBtn: document.getElementById("addEntryBtn"),
-    clearFiltersBtn: document.getElementById("clearFiltersBtn"),
-    statusBanner: document.getElementById("statusBanner"),
-    seasonInput: document.getElementById("seasonInput"),
-    seasonTypeInput: document.getElementById("seasonTypeInput"),
-    weekInput: document.getElementById("weekInput")
+    statusBanner: document.getElementById("statusBanner")
   };
 
   let state = loadState();
@@ -143,11 +134,6 @@
     };
   }
 
-  function normalizeEntries(entries) {
-    const normalized = Array.isArray(entries) ? entries.map(normalizeEntry) : [];
-    return normalized.length ? normalized : [{ name: "Entry 1", picks: [] }];
-  }
-
   function configuredEntriesForPlayer(playerId, index, starterEntries) {
     const playerPreset = CFG.playerPresets?.[playerId];
     const configured = Array.isArray(playerPreset)
@@ -155,14 +141,13 @@
       : index === 0
         ? starterEntries
         : [];
-    return configured.length
-      ? configured.map(normalizeEntry)
-      : [{ name: "Entry 1", picks: [] }];
+    return configured.map(normalizeEntry);
   }
 
   function allPicksPreset(playerId) {
-    const playerPreset = CFG.playerPresets?.[playerId];
-    const configuredPreset = Array.isArray(playerPreset) ? playerPreset : CFG.allPicksPreset;
+    const configuredPreset = playerId === PLAYER_DEFINITIONS[0]?.id
+      ? CFG.allPicksPreset
+      : CFG.playerPresets?.[playerId];
     return Array.isArray(configuredPreset)
       ? configuredPreset.map(normalizeEntry)
       : [];
@@ -195,13 +180,13 @@
       return { playerSelected: true, presetLoaded: false };
     }
 
-    const preset = allPicksPreset(player.id);
-    if (!preset.length) return { playerSelected: true, presetLoaded: false };
-
-    player.entries = preset.map((entry, index) => normalizeEntry(entry, index));
     state.activeView = "picks";
+    const preset = allPicksPreset(player.id);
+    if (preset.length) {
+      player.entries = preset.map((entry, index) => normalizeEntry(entry, index));
+    }
     saveState();
-    return { playerSelected: true, presetLoaded: true };
+    return { playerSelected: true, presetLoaded: Boolean(preset.length) };
   }
 
   function validSeason(value) {
@@ -226,19 +211,12 @@
     if (!value || typeof value !== "object") return fallback;
     if (value.weekKey !== CURRENT_WEEK_KEY) return fallback;
 
-    const storedPlayers = Array.isArray(value.players) ? value.players : [];
-    const legacyEntries = Array.isArray(value.entries) ? value.entries : null;
     const starterEntries = Array.isArray(CFG.starterEntries) ? CFG.starterEntries : [];
     const players = PLAYER_DEFINITIONS.map((definition, index) => {
-      const stored = storedPlayers.find(player => (
-        String(player?.id || "") === definition.id || normalize(player?.name) === normalize(definition.name)
-      ));
-      const entries = Array.isArray(stored?.entries)
-        ? stored.entries
-        : (!storedPlayers.length && index === 0 && legacyEntries
-          ? legacyEntries
-          : configuredEntriesForPlayer(definition.id, index, starterEntries));
-      return { ...definition, entries: normalizeEntries(entries) };
+      return {
+        ...definition,
+        entries: configuredEntriesForPlayer(definition.id, index, starterEntries)
+      };
     });
     const activePlayerId = players.some(player => player.id === value.activePlayerId)
       ? value.activePlayerId
@@ -252,9 +230,9 @@
       activePlayerId,
       activeView,
       weekKey: CURRENT_WEEK_KEY,
-      season: validSeason(value.season),
-      seasonType: validSeasonType(value.seasonType),
-      week: validWeek(value.week)
+      season: fallback.season,
+      seasonType: fallback.seasonType,
+      week: fallback.week
     };
   }
 
@@ -270,7 +248,13 @@
 
   function saveState() {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      // Picks and ESPN filters are checked-in configuration, not browser state.
+      // Only remember the viewer's tab and view preferences locally.
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        activePlayerId: state.activePlayerId,
+        activeView: state.activeView,
+        weekKey: CURRENT_WEEK_KEY
+      }));
       return true;
     } catch (error) {
       console.error(error);
@@ -342,26 +326,9 @@
     return pick.error ? `error:${pick.raw}` : `${pick.team.abbr}:${pick.spread}`;
   }
 
-  function syncStateFromEditors() {
-    const entries = [...els.entryEditors.querySelectorAll(".entry-editor")].map((wrap, index) => ({
-      name: wrap.querySelector(".entry-name")?.value.trim() || `Entry ${index + 1}`,
-      picks: (wrap.querySelector(".entry-picks")?.value || "")
-        .split("\n")
-        .map(value => value.trim())
-        .filter(Boolean)
-    }));
-
-    const player = activePlayer();
-    if (player) player.entries = normalizeEntries(entries);
-    state.season = validSeason(els.seasonInput.value);
-    state.seasonType = validSeasonType(els.seasonTypeInput.value);
-    state.week = validWeek(els.weekInput.value);
-  }
-
   function updateActivePlayerLabels() {
     const player = activePlayer();
     const name = player?.name || "Player";
-    els.activePlayerLabel.textContent = name;
     els.activePlayerName.textContent = name;
   }
 
@@ -403,32 +370,6 @@
     els.picksView.classList.toggle("hidden", state.activeView !== "picks");
   }
 
-  function renderEditors() {
-    els.entryEditors.innerHTML = "";
-    const player = activePlayer();
-    const entries = player?.entries || [{ name: "Entry 1", picks: [] }];
-
-    entries.forEach((entry, index) => {
-      const wrap = document.createElement("div");
-      wrap.className = "entry-editor";
-      wrap.innerHTML = `
-        <div class="editor-head">
-          <label class="editor-name-label" for="entry-name-${index}">Entry name</label>
-          <button class="danger remove-entry" data-entry="${index}" type="button" ${entries.length === 1 ? "disabled" : ""}>Remove</button>
-        </div>
-        <input id="entry-name-${index}" class="entry-name" data-entry="${index}" value="${escapeHtml(entry.name)}" aria-label="Entry ${index + 1} name">
-        <label class="editor-picks-label" for="entry-picks-${index}">Picks</label>
-        <textarea id="entry-picks-${index}" data-entry="${index}" class="entry-picks" spellcheck="false" aria-label="Picks for ${escapeHtml(entry.name)}" placeholder="Bears -3\nBroncos +3">${escapeHtml(entry.picks.join("\n"))}</textarea>
-        <p class="editor-hint">Team + line, e.g. Bears -3.5 or Bears -3½</p>
-      `;
-      els.entryEditors.appendChild(wrap);
-    });
-
-    els.seasonInput.value = state.season === "" ? "" : String(state.season);
-    els.seasonTypeInput.value = String(state.seasonType);
-    els.weekInput.value = state.week === "" ? "" : String(state.week);
-  }
-
   function buildScoreboardUrl() {
     const base = CFG.espnScoreboardBase || "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
     const url = new URL(base, window.location.href);
@@ -447,6 +388,49 @@
     return url.toString();
   }
 
+  function matchupKey(game) {
+    return [game?.home?.abbr, game?.away?.abbr]
+      .map(value => String(value || "").trim().toUpperCase())
+      .filter(Boolean)
+      .sort()
+      .join(":");
+  }
+
+  function circaMatchupKey(matchup) {
+    const teams = Array.isArray(matchup)
+      ? matchup
+      : [matchup?.away, matchup?.home];
+    return teams
+      .map(value => String(value || "").trim().toUpperCase())
+      .filter(Boolean)
+      .sort()
+      .join(":");
+  }
+
+  function alignGamesToCircaLineup(games) {
+    const expectedKeys = [...new Set(
+      (Array.isArray(CFG.circaMatchups) ? CFG.circaMatchups : [])
+        .map(circaMatchupKey)
+        .filter(key => key.includes(":"))
+    )];
+    if (!expectedKeys.length) return { games, check: null };
+
+    const expected = new Set(expectedKeys);
+    const actualKeys = new Set(games.map(matchupKey).filter(Boolean));
+    const matchingGames = games.filter(game => expected.has(matchupKey(game)));
+    const missingKeys = expectedKeys.filter(key => !actualKeys.has(key));
+
+    return {
+      games: matchingGames,
+      check: {
+        expectedCount: expectedKeys.length,
+        matchedCount: expectedKeys.length - missingKeys.length,
+        missingCount: missingKeys.length,
+        unexpectedCount: [...actualKeys].filter(key => !expected.has(key)).length
+      }
+    };
+  }
+
   function provider() {
     const providers = window.CIRCA_PROVIDERS || {};
     return providers[CFG.scoreProvider || "espn"];
@@ -455,7 +439,6 @@
   async function refreshScores() {
     if (refreshInFlight) return;
     refreshInFlight = true;
-    syncStateFromEditors();
     els.refreshBtn.disabled = true;
     els.refreshBtn.textContent = "Refreshing…";
     setBanner("Refreshing live scores…", "info");
@@ -475,12 +458,17 @@
       if (!result || !Array.isArray(result.games)) {
         throw new Error("Score provider returned an invalid games list");
       }
-      scoreboard = result;
+      const aligned = alignGamesToCircaLineup(result.games);
+      scoreboard = { ...result, games: aligned.games, lineupCheck: aligned.check };
       lastSuccessfulUpdate = new Date();
       updateLastUpdated();
 
-      if (!result.games.length) {
-        setBanner("Scores updated, but no games were returned for the selected filters.", "info");
+      if (aligned.check && aligned.check.matchedCount === 0) {
+        setBanner("ESPN returned no games from the Circa lineup for this week. Check CURRENT_WEEK's season and week values.", "error");
+      } else if (!aligned.games.length) {
+        setBanner("Scores updated, but no games from the configured Circa lineup were returned.", "info");
+      } else if (aligned.check?.missingCount) {
+        setBanner(`Scores updated. ${aligned.check.missingCount} Circa lineup game${aligned.check.missingCount === 1 ? " is" : "s are"} not in ESPN's response yet.`, "info");
       } else if (result.skippedEvents) {
         setBanner(`Scores updated. ${result.skippedEvents} game could not be read.`, "info");
       } else {
@@ -492,7 +480,7 @@
       const detail = error?.name === "AbortError"
         ? "The request timed out."
         : error?.message || "The score service was unavailable.";
-      setBanner(`Could not refresh live scores. Your saved picks are safe. ${detail}`, "error");
+      setBanner(`Could not refresh live scores. Your configured picks are unchanged. ${detail}`, "error");
       safeRender();
     } finally {
       window.clearTimeout(timeout);
@@ -513,11 +501,6 @@
     els.statusBanner.classList.toggle("hidden", !text);
     els.statusBanner.classList.toggle("info", Boolean(text) && kind === "info");
     els.statusBanner.classList.toggle("error", Boolean(text) && kind === "error");
-  }
-
-  function setSaveStatus(text, kind) {
-    els.saveStatus.textContent = text || "";
-    els.saveStatus.className = `save-status${kind ? ` ${kind}` : ""}`;
   }
 
   function applyFontScale() {
@@ -674,7 +657,7 @@
 
   function renderEntryRecords(entryRows) {
     if (!entryRows.length) {
-      els.entryRecords.innerHTML = `<p class="empty-records">Add a pick to see its current record.</p>`;
+      els.entryRecords.innerHTML = `<p class="empty-records">No picks are configured for this player.</p>`;
       return;
     }
 
@@ -791,7 +774,7 @@
                 </div>
                 <span class="badge ${grade.status}" aria-label="${escapeHtml(grade.label)}">${escapeHtml(grade.label)}</span>
               </li>`).join("")}
-          </ul>` : `<p class="empty-entry">No picks yet. Add one pick per line above.</p>`}
+          </ul>` : `<p class="empty-entry">No picks are configured for this entry.</p>`}
       `;
       els.entryCards.appendChild(card);
     }
@@ -800,7 +783,7 @@
 
     const rows = [...uniquePicks.values()];
     if (!rows.length) {
-      els.picksBody.innerHTML = `<tr><td colspan="6" class="empty-table">Add a pick above to see its live status here.</td></tr>`;
+      els.picksBody.innerHTML = `<tr><td colspan="6" class="empty-table">No picks are configured for this player.</td></tr>`;
       return;
     }
 
@@ -838,7 +821,7 @@
       renderDashboard();
     } catch (error) {
       console.error(error);
-      setBanner("The dashboard could not render this score response. Your saved picks are safe.", "error");
+      setBanner("The dashboard could not render this score response. Your configured picks are unchanged.", "error");
     }
   }
 
@@ -868,14 +851,10 @@
       return;
     }
 
-    // Preserve any in-progress edits before moving to another player's tab.
-    syncStateFromEditors();
     state.activePlayerId = player.id;
-    const saved = saveState();
+    saveState();
     renderPlayerTabs();
-    renderEditors();
     safeRender();
-    setSaveStatus(saved ? `Viewing ${player.name}` : "Could not save", saved ? "success" : "error");
     if (shouldFocus) document.getElementById(`player-tab-${player.id}`)?.focus();
   }
 
@@ -886,12 +865,10 @@
       return;
     }
 
-    syncStateFromEditors();
     state.activeView = viewId;
-    const saved = saveState();
+    saveState();
     renderViewTabs();
     safeRender();
-    setSaveStatus(saved ? (viewId === "picks" ? "Showing all picks" : "Showing entries") : "Could not save", saved ? "success" : "error");
     if (shouldFocus) document.querySelector(`[data-view="${viewId}"]`)?.focus();
   }
 
@@ -935,69 +912,17 @@
     selectView(buttons[nextIndex].dataset.view, true);
   });
 
-  els.addEntryBtn.addEventListener("click", () => {
-    syncStateFromEditors();
-    const player = activePlayer();
-    player.entries.push({ name: `Entry ${player.entries.length + 1}`, picks: [] });
-    renderEditors();
-    safeRender();
-    setSaveStatus("Unsaved changes", "pending");
-  });
-
-  els.entryEditors.addEventListener("click", event => {
-    const button = event.target.closest(".remove-entry");
-    if (!button || button.disabled) return;
-    syncStateFromEditors();
-    activePlayer().entries.splice(Number(button.dataset.entry), 1);
-    renderEditors();
-    safeRender();
-    setSaveStatus("Unsaved changes", "pending");
-  });
-
-  els.entryEditors.addEventListener("input", () => setSaveStatus("Unsaved changes", "pending"));
-  [els.seasonInput, els.seasonTypeInput, els.weekInput].forEach(input => {
-    input.addEventListener("change", () => setSaveStatus("Unsaved changes", "pending"));
-  });
-
-  els.saveBtn.addEventListener("click", async () => {
-    syncStateFromEditors();
-    const saved = saveState();
-    if (!saved) {
-      setSaveStatus("Could not save", "error");
-      setBanner("Your browser blocked local storage, so these changes may not survive a reload.", "error");
-      safeRender();
-      return;
-    }
-    setSaveStatus("Saved locally", "success");
-    safeRender();
-    await refreshScores();
-  });
-
-  els.clearFiltersBtn.addEventListener("click", async () => {
-    syncStateFromEditors();
-    state.season = "";
-    state.seasonType = DEFAULT_SEASON_TYPE;
-    state.week = "";
-    renderEditors();
-    const saved = saveState();
-    setSaveStatus(saved ? "Using current scoreboard" : "Could not save", saved ? "success" : "error");
-    await refreshScores();
-  });
-
   els.refreshBtn.addEventListener("click", refreshScores);
 
   els.decreaseFontBtn.addEventListener("click", () => adjustFontScale(-1));
   els.increaseFontBtn.addEventListener("click", () => adjustFontScale(1));
 
   applyFontScale();
-  const deepLinkState = applyDeepLink();
+  applyDeepLink();
   renderPlayerTabs();
   renderViewTabs();
-  renderEditors();
   updateLastUpdated();
   safeRender();
-  if (deepLinkState.presetLoaded) setSaveStatus("All-picks preset loaded from link", "success");
-  else if (deepLinkState.playerSelected) setSaveStatus(`Viewing ${activePlayer().name}`, "success");
   refreshScores().finally(scheduleScoreRefresh);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
@@ -1008,6 +933,6 @@
 
   window.addEventListener("unhandledrejection", event => {
     console.error(event.reason);
-    setBanner("Something unexpected happened. Your saved picks are safe.", "error");
+    setBanner("Something unexpected happened. Your configured picks are unchanged.", "error");
   });
 })();

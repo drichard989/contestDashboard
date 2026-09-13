@@ -12,19 +12,19 @@ Target hostname:
 - No backend required for the initial version
 - Multiple contest entries
 - Player tabs for Michael-Daniel, Rob, Ken, Ryan, and Andy
-- Independent saved picks for each player
+- Independent checked-in entries for each player
 - An all-picks view showing each unique pick and the entries using it
 - A checked-in weekly preset that can be loaded through deep links
 - Deep links to the all-picks preset for any player
 - Per-entry won/lost/tied records, with finished teams in the solid category color, live picks shown in parentheses, and pending teams listed by selection
-- Pick input such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
+- Configured pick strings such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
 - Live NFL scores
 - Automatic ATS calculation
 - Covering / losing / push / pending status
 - Margin against the contest line
 - Automatic score refresh every 10 seconds from ESPN; live clocks show ESPN's latest reported value without client-side interpolation, and there is no kickoff countdown
 - Desktop text starts larger, with saved A− / A+ size controls
-- Browser `localStorage` persistence
+- Browser remembers the selected player/view and text size; picks remain read-only checked-in data
 - Responsive/mobile layout
 - `CNAME` preconfigured for `contestDashboard.danielrichard.com`
 
@@ -105,7 +105,7 @@ Examples:
 
 At game end the same math determines win/loss/push.
 
-## Input format
+## Configured pick format
 
 One pick per line:
 
@@ -117,16 +117,16 @@ Vikings -1.5
 Lions -7
 ```
 
-Accepted team text includes common names such as `Bears`, `Chicago Bears`, or `CHI`.
+Configured team text can use common names such as `Bears`, `Chicago Bears`, or `CHI`.
 
-Half points can be entered as either:
+Half points can be written as either:
 
 ```text
 Steelers -3.5
 Steelers -3½
 ```
 
-Pick'em can be entered as:
+Pick'em can be written as:
 
 ```text
 Bears PK
@@ -136,18 +136,18 @@ Bears PK
 
 - `index.html` — UI shell
 - `style.css` — responsive styling
-- `config.js` — endpoint, refresh cadence, starter entries
+- `config.js` — the current week, Circa lines/matchups, player entries, and refresh cadence
 - `providers/espn.js` — ESPN fetch and response normalization
-- `app.js` — input parsing, team matching, ATS grading, rendering, persistence
+- `app.js` — configured pick parsing, team matching, ATS grading, rendering, and display preferences
 - `CNAME` — GitHub Pages custom domain
 - `CODEX_HANDOFF.md` — requirements and recommended next steps for Codex
 - `TEST_PLAN.md` — manual acceptance checklist
 
 ### Weekly update workflow
 
-Update only `CURRENT_WEEK` in `config.js` each week. Replace its `key`, copy the Circa lines into `circaLines`, and replace `playerEntries` with the new entries for the players who have a different card. The site derives the default and player-specific presets from this object. Changing the key automatically discards saved entries from the prior week; no previous-week archive is kept.
+The public dashboard is display-only: nobody enters or edits picks on the site. Update only `CURRENT_WEEK` in `config.js` each week. Replace its `key`, `season`, `seasonType`, and `week`, copy the Circa matchups and lines into `circaMatchups` and `circaLines`, and replace `playerEntries` with the new entries for the players who have a card. ESPN requests use those same season/week values and ignore games outside the configured Circa matchups. Changing the key makes prior-week local state obsolete; no previous-week archive is kept.
 
-Keep each pick as `Team + line`, for example `Bears -3` or `Texans +0.5`. Player keys use the configured IDs such as `michael-daniel`, `rob`, `ken`, `ryan`, and `andy`. Then push the change. The all-picks deep links load the matching preset for the selected player.
+Keep each pick as `Team + line`, for example `Bears -3` or `Texans +0.5`. Player keys use the configured IDs such as `michael-daniel`, `rob`, `ken`, `ryan`, and `andy`. Then push the change. The all-picks deep links load the matching checked-in preset for the selected player.
 
 Use these links to open the preset directly:
 
@@ -165,8 +165,8 @@ The `player` value can be either the configured ID or display name. A link with 
 2. Direct browser fetches depend on ESPN continuing to allow cross-origin requests.
 3. This starter does not scrape the weekly Circa card.
 4. Contest lines are entered manually and intentionally never replaced by sportsbook market odds.
-5. Browser storage is per-device/browser. Save picks after changing entries or scoreboard filters. Player tabs and the selected view are saved too.
-6. If you want entries synced across devices later, add a backend or a shareable URL format.
+5. The dashboard does not accept or persist hand-entered picks. Player tabs, the selected view, and text size are local display preferences only.
+6. The weekly entries are synced across devices by committing and pushing the checked-in configuration.
 
 ## Recommended production hardening
 
