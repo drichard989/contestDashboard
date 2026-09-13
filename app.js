@@ -257,19 +257,44 @@
         .filter(Boolean)
     }));
 
-    state = normalizeState({
-      ...state,
-      entries,
-      season: els.seasonInput.value,
-      seasonType: els.seasonTypeInput.value,
-      week: els.weekInput.value
-    });
+    const player = activePlayer();
+    if (player) player.entries = normalizeEntries(entries);
+    state.season = validSeason(els.seasonInput.value);
+    state.seasonType = validSeasonType(els.seasonTypeInput.value);
+    state.week = validWeek(els.weekInput.value);
+  }
+
+  function updateActivePlayerLabels() {
+    const player = activePlayer();
+    const name = player?.name || "Player";
+    els.activePlayerLabel.textContent = name;
+    els.activePlayerName.textContent = name;
+    els.gamesPlayerName.textContent = name;
+  }
+
+  function renderPlayerTabs() {
+    els.playerTabs.innerHTML = state.players.map(player => `
+      <button
+        id="player-tab-${escapeHtml(player.id)}"
+        class="player-tab${player.id === state.activePlayerId ? " active" : ""}"
+        type="button"
+        role="tab"
+        data-player="${escapeHtml(player.id)}"
+        aria-selected="${player.id === state.activePlayerId}"
+        aria-controls="dashboardContent"
+        tabindex="${player.id === state.activePlayerId ? "0" : "-1"}">
+        ${escapeHtml(player.name)}
+      </button>
+    `).join("");
+    updateActivePlayerLabels();
   }
 
   function renderEditors() {
     els.entryEditors.innerHTML = "";
+    const player = activePlayer();
+    const entries = player?.entries || [{ name: "Entry 1", picks: [] }];
 
-    state.entries.forEach((entry, index) => {
+    entries.forEach((entry, index) => {
       const wrap = document.createElement("div");
       wrap.className = "entry-editor";
       wrap.innerHTML = `
@@ -493,7 +518,9 @@
 
   function renderDashboard() {
     const context = createGradeContext();
-    const entries = state.entries.map(entry => ({
+    const player = activePlayer();
+    updateActivePlayerLabels();
+    const entries = (player?.entries || []).map(entry => ({
       name: entry.name,
       picks: entry.picks.map(parsePick).filter(Boolean)
     }));
