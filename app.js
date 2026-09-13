@@ -3,6 +3,9 @@
 
   const CFG = window.CIRCA_CONFIG || {};
   const STORAGE_KEY = "circa-picks-dashboard:v1";
+  const FONT_SCALE_KEY = "circa-picks-dashboard:font-scale";
+  const FONT_SCALE_LEVELS = [0.92, 1, 1.08, 1.16, 1.24, 1.32];
+  const DEFAULT_FONT_SCALE = typeof window.matchMedia === "function" && window.matchMedia("(min-width: 761px)").matches ? 1.08 : 1;
   const DEFAULT_SEASON_TYPE = 2;
   const FALLBACK_PLAYERS = [
     { id: "michael-daniel", name: "Michael-Daniel" },
@@ -73,6 +76,9 @@
     picksBody: document.getElementById("picksBody"),
     entryRecords: document.getElementById("entryRecords"),
     allPicksPresetBtn: document.getElementById("allPicksPresetBtn"),
+    decreaseFontBtn: document.getElementById("decreaseFontBtn"),
+    increaseFontBtn: document.getElementById("increaseFontBtn"),
+    fontSizeValue: document.getElementById("fontSizeValue"),
     lastUpdated: document.getElementById("lastUpdated"),
     refreshBtn: document.getElementById("refreshBtn"),
     saveBtn: document.getElementById("saveBtn"),
@@ -90,6 +96,16 @@
   let lastSuccessfulUpdate = null;
   let refreshTimer = null;
   let refreshInFlight = false;
+  let fontScale = loadFontScale();
+
+  function loadFontScale() {
+    try {
+      const stored = Number(window.localStorage.getItem(FONT_SCALE_KEY));
+      return FONT_SCALE_LEVELS.includes(stored) ? stored : DEFAULT_FONT_SCALE;
+    } catch (_) {
+      return DEFAULT_FONT_SCALE;
+    }
+  }
 
   function normalize(value) {
     return String(value || "")
@@ -480,6 +496,28 @@
   function setSaveStatus(text, kind) {
     els.saveStatus.textContent = text || "";
     els.saveStatus.className = `save-status${kind ? ` ${kind}` : ""}`;
+  }
+
+  function applyFontScale() {
+    document.documentElement.style.setProperty("--font-scale", `${Math.round(fontScale * 100)}%`);
+    const levelIndex = FONT_SCALE_LEVELS.indexOf(fontScale);
+    els.decreaseFontBtn.disabled = levelIndex <= 0;
+    els.increaseFontBtn.disabled = levelIndex >= FONT_SCALE_LEVELS.length - 1;
+    els.fontSizeValue.textContent = `Text size ${Math.round(fontScale * 100)}%`;
+  }
+
+  function adjustFontScale(direction) {
+    const currentIndex = FONT_SCALE_LEVELS.indexOf(fontScale);
+    const nextIndex = Math.max(0, Math.min(FONT_SCALE_LEVELS.length - 1, currentIndex + direction));
+    if (nextIndex === currentIndex) return;
+
+    fontScale = FONT_SCALE_LEVELS[nextIndex];
+    try {
+      window.localStorage.setItem(FONT_SCALE_KEY, String(fontScale));
+    } catch (_) {
+      // The visual adjustment still works when browser storage is unavailable.
+    }
+    applyFontScale();
   }
 
   function getGames() {
@@ -874,6 +912,9 @@
 
   els.refreshBtn.addEventListener("click", refreshScores);
 
+  els.decreaseFontBtn.addEventListener("click", () => adjustFontScale(-1));
+  els.increaseFontBtn.addEventListener("click", () => adjustFontScale(1));
+
   els.allPicksPresetBtn.addEventListener("click", async () => {
     const preset = allPicksPreset();
     if (!preset.length) {
@@ -892,6 +933,7 @@
     await refreshScores();
   });
 
+  applyFontScale();
   const deepLinkState = applyDeepLink();
   renderPlayerTabs();
   renderViewTabs();

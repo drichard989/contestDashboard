@@ -23,6 +23,7 @@ Target hostname:
 - Covering / losing / push / pending status
 - Margin against the contest line
 - Automatic refresh every 10 seconds
+- Desktop text starts larger, with saved A− / A+ size controls
 - Browser `localStorage` persistence
 - Responsive/mobile layout
 - `CNAME` preconfigured for `contestDashboard.danielrichard.com`

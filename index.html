@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b2a52" />
   <meta name="description" content="A personal live dashboard for tracking Circa NFL picks against live scores." />
   <title>Circa Picks Live Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=20260913-4" />
 </head>
 <body>
   <header class="topbar">
@@ -16,6 +16,11 @@
       <p>Live NFL scores against your stored contest lines</p>
     </div>
     <div class="top-actions">
+      <div class="font-controls" aria-label="Text size controls">
+        <span id="fontSizeValue" class="font-size-value">Text size</span>
+        <button id="decreaseFontBtn" class="font-size-button" type="button" aria-label="Decrease text size" title="Decrease text size">A−</button>
+        <button id="increaseFontBtn" class="font-size-button" type="button" aria-label="Increase text size" title="Increase text size">A+</button>
+      </div>
       <span id="lastUpdated" class="last-updated" role="status" aria-live="polite">Waiting for first update</span>
       <button id="refreshBtn" type="button">Refresh scores</button>
     </div>
@@ -139,8 +144,8 @@
     </p>
   </footer>
 
-  <script src="config.js"></script>
-  <script src="providers/espn.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js?v=20260913-4"></script>
+  <script src="providers/espn.js?v=20260913-4"></script>
+  <script src="app.js?v=20260913-4"></script>
 </body>
 </html>

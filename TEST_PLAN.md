@@ -101,3 +101,9 @@ Verify:
 - team + spread remains legible
 - buttons are touch-friendly
 - entry cards remain compact
+
+## Text size controls
+
+- On desktop, confirm the default text is larger than the browser default.
+- Confirm **A−** and **A+** change the page text size and disable at their limits.
+- Reload the page and confirm the selected text size persists.
