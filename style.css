@@ -121,7 +121,7 @@ button:disabled { cursor: wait; opacity: .65; }
 
 main {
   max-width: 1220px;
-  margin: 9px auto 48px;
+  margin: 9px auto 8px;
   padding: 0 18px;
 }
 
@@ -228,7 +228,7 @@ label input, label select { display: block; margin-top: 5px; font-weight: 400; }
 .status-banner.error { background: var(--red-bg); color: var(--red); border-color: #efc4c4; }
 .hidden { display: none; }
 
-.entry-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.entry-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 0; }
 .entry-card { overflow: hidden; }
 .entry-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; background: var(--navy); color: #fff; }
 .entry-card-header .eyebrow { display: none; }
@@ -281,9 +281,8 @@ td { font-size: .84rem; }
 td strong { font-size: .87rem; }
 .empty-table { padding: 24px 14px; color: var(--muted); text-align: center; white-space: normal; }
 
-footer { max-width: 1220px; margin: 0 auto; padding: 0 18px 24px; color: var(--muted); font-size: .78rem; }
-footer p { margin: 0; }
-.footer-controls { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+footer { max-width: 1220px; margin: 0 auto; padding: 0 18px 12px; color: var(--muted); font-size: .78rem; }
+.footer-controls { display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
 
 @media (prefers-color-scheme: dark) {
   :root {
