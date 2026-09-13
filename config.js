@@ -98,6 +98,18 @@ const CURRENT_WEEK = {
           "Jets +1.5"
         ]
       }
+    ],
+    andy: [
+      {
+        name: "Entry 1",
+        picks: [
+          "Patriots +3",
+          "Steelers -3.5",
+          "Broncos +3",
+          "Vikings -1.5",
+          "Chargers -8.5"
+        ]
+      }
     ]
   }
 };
