@@ -71,7 +71,6 @@
     viewTabs: document.getElementById("viewTabs"),
     entriesView: document.getElementById("entriesView"),
     picksView: document.getElementById("picksView"),
-    activePlayerName: document.getElementById("activePlayerName"),
     entryCards: document.getElementById("entryCards"),
     picksBody: document.getElementById("picksBody"),
     entryRecords: document.getElementById("entryRecords"),
@@ -326,12 +325,6 @@
     return pick.error ? `error:${pick.raw}` : `${pick.team.abbr}:${pick.spread}`;
   }
 
-  function updateActivePlayerLabels() {
-    const player = activePlayer();
-    const name = player?.name || "Player";
-    els.activePlayerName.textContent = name;
-  }
-
   function renderPlayerTabs() {
     els.playerTabs.innerHTML = state.players.map(player => `
       <button
@@ -346,7 +339,6 @@
         ${escapeHtml(player.name)}
       </button>
     `).join("");
-    updateActivePlayerLabels();
   }
 
   function renderViewTabs() {
