@@ -7,7 +7,7 @@
   <meta name="description" content="A personal live dashboard for tracking contest NFL picks against live scores." />
   <title>Contest Picks Live Dashboard</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="style.css?v=20260913-16" />
+  <link rel="stylesheet" href="style.css?v=20260913-17" />
 </head>
 <body>
   <nav class="player-tabs" aria-label="Player picks">
@@ -29,25 +29,23 @@
     </div>
 
     <div id="picksView" class="view-panel hidden">
-      <section class="panel picks-panel">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Entries</th>
-                <th scope="col">Pick</th>
-                <th scope="col">Game</th>
-                <th scope="col">Score / status</th>
-                <th scope="col">ATS</th>
-                <th scope="col">Margin vs line</th>
-              </tr>
-            </thead>
-            <tbody id="picksBody">
-              <tr><td colspan="6" class="empty-table">No picks are configured for this player.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Entries</th>
+              <th scope="col">Pick</th>
+              <th scope="col">Game</th>
+              <th scope="col">Score / status</th>
+              <th scope="col">ATS</th>
+              <th scope="col">Margin vs line</th>
+            </tr>
+          </thead>
+          <tbody id="picksBody">
+            <tr><td colspan="6" class="empty-table">No picks are configured for this player.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 
