@@ -230,10 +230,10 @@ label input, label select { display: block; margin-top: 5px; font-weight: 400; }
 
 .entry-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 24px; }
 .entry-card { overflow: hidden; }
-.entry-card-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px; background: var(--navy); color: #fff; }
-.entry-card-header .eyebrow { color: rgba(255,255,255,.62); }
-.entry-card h3 { margin: 3px 0 0; font-size: 1.15rem; }
-.pick-total { padding: 4px 8px; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; color: rgba(255,255,255,.8); font-size: .76rem; font-weight: 800; white-space: nowrap; }
+.entry-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; background: var(--navy); color: #fff; }
+.entry-card-header .eyebrow { display: none; }
+.entry-card h3 { margin: 0; font-size: 1rem; line-height: 1.1; }
+.pick-total { padding: 3px 7px; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; color: rgba(255,255,255,.8); font-size: .68rem; font-weight: 800; line-height: 1.1; white-space: nowrap; }
 .entry-summary { display: flex; flex-wrap: wrap; gap: 7px; padding: 11px 16px; border-bottom: 1px solid var(--line); }
 .count { padding: 5px 8px; border-radius: 999px; font-size: .74rem; font-weight: 900; }
 .count.cover { background: var(--green-bg); color: var(--green); }
