@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0b2a52" />
+  <title>Circa Picks Live Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Circa Picks</h1>
+      <p>Live NFL score + ATS dashboard</p>
+    </div>
+    <div class="top-actions">
+      <span id="lastUpdated">Not updated yet</span>
+      <button id="refreshBtn">Refresh scores</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel setup">
+      <div class="section-head">
+        <div>
+          <h2>Entries</h2>
+          <p>Enter one pick per line using <strong>Team Spread</strong>, e.g. <code>Bears -3</code>.</p>
+        </div>
+      </div>
+
+      <div id="entryEditors" class="entry-editors"></div>
+
+      <div class="setup-actions">
+        <button id="addEntryBtn" class="secondary">+ Add entry</button>
+        <button id="saveBtn">Save picks</button>
+      </div>
+
+      <details class="advanced">
+        <summary>Week / season override</summary>
+        <div class="advanced-grid">
+          <label>
+            Season
+            <input id="seasonInput" type="number" min="2020" max="2100" />
+          </label>
+          <label>
+            Season type
+            <select id="seasonTypeInput">
+              <option value="1">Preseason</option>
+              <option value="2" selected>Regular season</option>
+              <option value="3">Postseason</option>
+            </select>
+          </label>
+          <label>
+            Week
+            <input id="weekInput" type="number" min="1" max="22" />
+          </label>
+        </div>
+        <p class="muted">Leave season/week blank to let ESPN return its current scoreboard.</p>
+      </details>
+    </section>
+
+    <section id="statusBanner" class="status-banner hidden"></section>
+
+    <section id="entryCards" class="entry-cards"></section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <h2>All selected games</h2>
+          <p>Current game score and status against your stored contest line.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Pick</th>
+              <th>Game</th>
+              <th>Score / status</th>
+              <th>ATS</th>
+              <th>Margin vs line</th>
+            </tr>
+          </thead>
+          <tbody id="gamesBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      Personal hobby dashboard. Live scores come from an unofficial, unauthenticated ESPN web endpoint.
+      It is not a guaranteed or supported API and can change without notice.
+    </p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
