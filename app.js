@@ -121,9 +121,7 @@
     return {
       players: PLAYER_DEFINITIONS.map((player, index) => ({
         ...player,
-        entries: index === 0 && starterEntries.length
-          ? starterEntries.map(normalizeEntry)
-          : [{ name: "Entry 1", picks: [] }]
+        entries: configuredEntriesForPlayer(player.id, index, starterEntries)
       })),
       activePlayerId: PLAYER_DEFINITIONS[0]?.id || "michael-daniel",
       activeView: "entries",
@@ -146,6 +144,18 @@
   function normalizeEntries(entries) {
     const normalized = Array.isArray(entries) ? entries.map(normalizeEntry) : [];
     return normalized.length ? normalized : [{ name: "Entry 1", picks: [] }];
+  }
+
+  function configuredEntriesForPlayer(playerId, index, starterEntries) {
+    const playerPreset = CFG.playerPresets?.[playerId];
+    const configured = Array.isArray(playerPreset)
+      ? playerPreset
+      : index === 0
+        ? starterEntries
+        : [];
+    return configured.length
+      ? configured.map(normalizeEntry)
+      : [{ name: "Entry 1", picks: [] }];
   }
 
   function allPicksPreset(playerId) {
@@ -215,11 +225,16 @@
 
     const storedPlayers = Array.isArray(value.players) ? value.players : [];
     const legacyEntries = Array.isArray(value.entries) ? value.entries : null;
+    const starterEntries = Array.isArray(CFG.starterEntries) ? CFG.starterEntries : [];
     const players = PLAYER_DEFINITIONS.map((definition, index) => {
       const stored = storedPlayers.find(player => (
         String(player?.id || "") === definition.id || normalize(player?.name) === normalize(definition.name)
       ));
-      const entries = stored?.entries ?? (!storedPlayers.length && index === 0 ? legacyEntries : null);
+      const entries = Array.isArray(stored?.entries)
+        ? stored.entries
+        : (!storedPlayers.length && index === 0 && legacyEntries
+          ? legacyEntries
+          : configuredEntriesForPlayer(definition.id, index, starterEntries));
       return { ...definition, entries: normalizeEntries(entries) };
     });
     const activePlayerId = players.some(player => player.id === value.activePlayerId)
