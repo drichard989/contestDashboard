@@ -7,6 +7,7 @@
   const FONT_SCALE_LEVELS = [0.92, 1, 1.08, 1.16, 1.24, 1.32];
   const DEFAULT_FONT_SCALE = typeof window.matchMedia === "function" && window.matchMedia("(min-width: 761px)").matches ? 1.08 : 1;
   const DEFAULT_SEASON_TYPE = 2;
+  const CURRENT_WEEK_KEY = String(CFG.weekKey || "current");
   const SCORE_REFRESH_MS = Number(CFG.refreshMs) > 0 ? Number(CFG.refreshMs) : 10000;
   const FALLBACK_PLAYERS = [
     { id: "michael-daniel", name: "Michael-Daniel" },
@@ -125,6 +126,7 @@
       })),
       activePlayerId: PLAYER_DEFINITIONS[0]?.id || "michael-daniel",
       activeView: "entries",
+      weekKey: CURRENT_WEEK_KEY,
       season: validSeason(CFG.defaultSeason),
       seasonType: validSeasonType(CFG.defaultSeasonType),
       week: validWeek(CFG.defaultWeek)
@@ -222,6 +224,7 @@
   function normalizeState(value) {
     const fallback = defaultState();
     if (!value || typeof value !== "object") return fallback;
+    if (value.weekKey !== CURRENT_WEEK_KEY) return fallback;
 
     const storedPlayers = Array.isArray(value.players) ? value.players : [];
     const legacyEntries = Array.isArray(value.entries) ? value.entries : null;
@@ -248,6 +251,7 @@
       players,
       activePlayerId,
       activeView,
+      weekKey: CURRENT_WEEK_KEY,
       season: validSeason(value.season),
       seasonType: validSeasonType(value.seasonType),
       week: validWeek(value.week)

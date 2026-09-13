@@ -143,9 +143,11 @@ Bears PK
 - `CODEX_HANDOFF.md` — requirements and recommended next steps for Codex
 - `TEST_PLAN.md` — manual acceptance checklist
 
-### Weekly preset and deep links
+### Weekly update workflow
 
-Update `ALL_PICKS_PRESET` in `config.js` with the default current week's entries, or add a player-specific entry under `playerPresets`. Then push the change. The all-picks deep links load the matching preset for the selected player.
+Update only `CURRENT_WEEK` in `config.js` each week. Replace its `key`, copy the Circa lines into `circaLines`, and replace `playerEntries` with the new entries for the players who have a different card. The site derives the default and player-specific presets from this object. Changing the key automatically discards saved entries from the prior week; no previous-week archive is kept.
+
+Keep each pick as `Team + line`, for example `Bears -3` or `Texans +0.5`. Player keys use the configured IDs such as `michael-daniel`, `rob`, `ken`, `ryan`, and `andy`. Then push the change. The all-picks deep links load the matching preset for the selected player.
 
 Use these links to open the preset directly:
 
