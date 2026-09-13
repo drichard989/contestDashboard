@@ -278,7 +278,7 @@ label input, label select { display: block; margin-top: 5px; font-weight: 400; }
 .pick-margin strong { color: var(--ink); }
 .empty-entry { margin: 0; padding: 18px 16px; color: var(--muted); font-size: .86rem; }
 
-.badge { display: inline-flex; align-items: center; justify-content: center; padding: 5px 8px; border-radius: 999px; font-size: .7rem; font-weight: 950; letter-spacing: .02em; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; border-radius: 999px; font-size: .82rem; font-weight: 950; letter-spacing: .02em; line-height: 1.1; white-space: nowrap; }
 .badge.cover { background: var(--green-bg); color: var(--green); }
 .badge.lose { background: var(--red-bg); color: var(--red); }
 .badge.push { background: var(--yellow-bg); color: var(--yellow); }
@@ -403,7 +403,7 @@ footer { max-width: 1220px; margin: 0 auto; padding: 0 18px 40px; color: var(--m
   .font-size-value { display: none; }
   .last-updated { font-size: .62rem; }
   .pick-row { gap: 8px; }
-  .badge { font-size: .64rem; }
+  .badge { padding: 7px 10px; font-size: .74rem; }
   footer { padding-left: 12px; padding-right: 12px; }
 }
 
