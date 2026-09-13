@@ -2,6 +2,12 @@ window.CIRCA_CONFIG = {
   // Refresh live scores every 30 seconds.
   refreshMs: 30000,
 
+  // Keep provider-specific fetch and JSON normalization outside the dashboard UI.
+  scoreProvider: "espn",
+
+  // Avoid leaving the refresh button waiting forever if the endpoint is unavailable.
+  requestTimeoutMs: 12000,
+
   // Unofficial / unsupported ESPN endpoint. No API key is currently required.
   // See README.md and CODEX_HANDOFF.md for caveats and fallback strategy.
   espnScoreboardBase:

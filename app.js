@@ -3,46 +3,49 @@
 
   const CFG = window.CIRCA_CONFIG || {};
   const STORAGE_KEY = "circa-picks-dashboard:v1";
+  const DEFAULT_SEASON_TYPE = 2;
 
-  // ESPN abbreviations are included where obvious. Team-name aliases allow natural input.
+  // ESPN abbreviations plus the common names people tend to paste into a card.
   const TEAMS = [
-    ["ARI", "Arizona Cardinals", ["cardinals","arizona"]],
-    ["ATL", "Atlanta Falcons", ["falcons","atlanta"]],
-    ["BAL", "Baltimore Ravens", ["ravens","baltimore"]],
-    ["BUF", "Buffalo Bills", ["bills","buffalo"]],
-    ["CAR", "Carolina Panthers", ["panthers","carolina"]],
-    ["CHI", "Chicago Bears", ["bears","chicago"]],
-    ["CIN", "Cincinnati Bengals", ["bengals","cincinnati"]],
-    ["CLE", "Cleveland Browns", ["browns","cleveland"]],
-    ["DAL", "Dallas Cowboys", ["cowboys","dallas"]],
-    ["DEN", "Denver Broncos", ["broncos","denver"]],
-    ["DET", "Detroit Lions", ["lions","detroit"]],
-    ["GB", "Green Bay Packers", ["packers","green bay"]],
-    ["HOU", "Houston Texans", ["texans","houston"]],
-    ["IND", "Indianapolis Colts", ["colts","indianapolis"]],
-    ["JAX", "Jacksonville Jaguars", ["jaguars","jacksonville","jags"]],
-    ["KC", "Kansas City Chiefs", ["chiefs","kansas city"]],
-    ["LV", "Las Vegas Raiders", ["raiders","las vegas","oakland"]],
-    ["LAC", "Los Angeles Chargers", ["chargers","la chargers"]],
-    ["LAR", "Los Angeles Rams", ["rams","la rams"]],
-    ["MIA", "Miami Dolphins", ["dolphins","miami"]],
-    ["MIN", "Minnesota Vikings", ["vikings","minnesota"]],
-    ["NE", "New England Patriots", ["patriots","new england","pats"]],
-    ["NO", "New Orleans Saints", ["saints","new orleans"]],
-    ["NYG", "New York Giants", ["giants","ny giants"]],
-    ["NYJ", "New York Jets", ["jets","ny jets"]],
-    ["PHI", "Philadelphia Eagles", ["eagles","philadelphia","philly"]],
-    ["PIT", "Pittsburgh Steelers", ["steelers","pittsburgh"]],
-    ["SEA", "Seattle Seahawks", ["seahawks","seattle"]],
-    ["SF", "San Francisco 49ers", ["49ers","niners","san francisco"]],
-    ["TB", "Tampa Bay Buccaneers", ["buccaneers","bucs","tampa bay","tampa"]],
-    ["TEN", "Tennessee Titans", ["titans","tennessee"]],
-    ["WSH", "Washington Commanders", ["commanders","washington"]]
+    ["ARI", "Arizona Cardinals", ["cardinals", "arizona"]],
+    ["ATL", "Atlanta Falcons", ["falcons", "atlanta"]],
+    ["BAL", "Baltimore Ravens", ["ravens", "baltimore"]],
+    ["BUF", "Buffalo Bills", ["bills", "buffalo"]],
+    ["CAR", "Carolina Panthers", ["panthers", "carolina"]],
+    ["CHI", "Chicago Bears", ["bears", "chicago"]],
+    ["CIN", "Cincinnati Bengals", ["bengals", "cincinnati"]],
+    ["CLE", "Cleveland Browns", ["browns", "cleveland"]],
+    ["DAL", "Dallas Cowboys", ["cowboys", "dallas"]],
+    ["DEN", "Denver Broncos", ["broncos", "denver"]],
+    ["DET", "Detroit Lions", ["lions", "detroit"]],
+    ["GB", "Green Bay Packers", ["packers", "green bay", "g.b."]],
+    ["HOU", "Houston Texans", ["texans", "houston"]],
+    ["IND", "Indianapolis Colts", ["colts", "indianapolis"]],
+    ["JAX", "Jacksonville Jaguars", ["jaguars", "jacksonville", "jags", "jac"]],
+    ["KC", "Kansas City Chiefs", ["chiefs", "kansas city"]],
+    ["LV", "Las Vegas Raiders", ["raiders", "las vegas", "oakland", "oak"]],
+    ["LAC", "Los Angeles Chargers", ["chargers", "la chargers"]],
+    ["LAR", "Los Angeles Rams", ["rams", "la rams"]],
+    ["MIA", "Miami Dolphins", ["dolphins", "miami"]],
+    ["MIN", "Minnesota Vikings", ["vikings", "minnesota"]],
+    ["NE", "New England Patriots", ["patriots", "new england", "pats", "nwe"]],
+    ["NO", "New Orleans Saints", ["saints", "new orleans"]],
+    ["NYG", "New York Giants", ["giants", "ny giants"]],
+    ["NYJ", "New York Jets", ["jets", "ny jets"]],
+    ["PHI", "Philadelphia Eagles", ["eagles", "philadelphia", "philly"]],
+    ["PIT", "Pittsburgh Steelers", ["steelers", "pittsburgh"]],
+    ["SEA", "Seattle Seahawks", ["seahawks", "seattle"]],
+    ["SF", "San Francisco 49ers", ["49ers", "niners", "san francisco", "sfo"]],
+    ["TB", "Tampa Bay Buccaneers", ["buccaneers", "bucs", "tampa bay", "tampa", "tam"]],
+    ["TEN", "Tennessee Titans", ["titans", "tennessee"]],
+    ["WSH", "Washington Commanders", ["commanders", "washington", "wsh", "was"]]
   ];
 
   const aliasMap = new Map();
   for (const [abbr, full, aliases] of TEAMS) {
-    [abbr, full, ...aliases].forEach(a => aliasMap.set(normalize(a), { abbr, full }));
+    [abbr, full, ...aliases].forEach(alias => {
+      aliasMap.set(normalize(alias), { abbr, full });
+    });
   }
 
   const els = {
@@ -52,7 +55,9 @@
     lastUpdated: document.getElementById("lastUpdated"),
     refreshBtn: document.getElementById("refreshBtn"),
     saveBtn: document.getElementById("saveBtn"),
+    saveStatus: document.getElementById("saveStatus"),
     addEntryBtn: document.getElementById("addEntryBtn"),
+    clearFiltersBtn: document.getElementById("clearFiltersBtn"),
     statusBanner: document.getElementById("statusBanner"),
     seasonInput: document.getElementById("seasonInput"),
     seasonTypeInput: document.getElementById("seasonTypeInput"),
@@ -61,10 +66,12 @@
 
   let state = loadState();
   let scoreboard = null;
-  let timer = null;
+  let lastSuccessfulUpdate = null;
+  let refreshTimer = null;
+  let refreshInFlight = false;
 
-  function normalize(s) {
-    return String(s || "")
+  function normalize(value) {
+    return String(value || "")
       .trim()
       .toLowerCase()
       .replace(/[’']/g, "")
@@ -72,306 +79,546 @@
       .replace(/\s+/g, " ");
   }
 
-  function displaySpread(n) {
-    if (Object.is(n, -0)) n = 0;
-    return `${n > 0 ? "+" : ""}${Number.isInteger(n) ? n : n.toFixed(1).replace(".5", "½")}`;
+  function defaultState() {
+    const starterEntries = Array.isArray(CFG.starterEntries) ? CFG.starterEntries : [];
+    return {
+      entries: starterEntries.length
+        ? starterEntries.map(normalizeEntry)
+        : [{ name: "Entry 1", picks: [] }],
+      season: validSeason(CFG.defaultSeason),
+      seasonType: validSeasonType(CFG.defaultSeasonType),
+      week: validWeek(CFG.defaultWeek)
+    };
+  }
+
+  function normalizeEntry(entry, index) {
+    const picks = Array.isArray(entry?.picks)
+      ? entry.picks.map(value => String(value ?? "").trim()).filter(Boolean)
+      : [];
+    return {
+      name: String(entry?.name || `Entry ${index + 1}`).trim() || `Entry ${index + 1}`,
+      picks
+    };
+  }
+
+  function validSeason(value) {
+    if (value === "" || value == null) return "";
+    const number = Number(value);
+    return Number.isInteger(number) && number >= 2020 && number <= 2100 ? number : "";
+  }
+
+  function validWeek(value) {
+    if (value === "" || value == null) return "";
+    const number = Number(value);
+    return Number.isInteger(number) && number >= 1 && number <= 22 ? number : "";
+  }
+
+  function validSeasonType(value) {
+    const number = Number(value);
+    return [1, 2, 3].includes(number) ? number : DEFAULT_SEASON_TYPE;
+  }
+
+  function normalizeState(value) {
+    const fallback = defaultState();
+    if (!value || typeof value !== "object") return fallback;
+
+    const entries = Array.isArray(value.entries)
+      ? value.entries.map(normalizeEntry)
+      : fallback.entries;
+
+    return {
+      entries: entries.length ? entries : [{ name: "Entry 1", picks: [] }],
+      season: validSeason(value.season),
+      seasonType: validSeasonType(value.seasonType),
+      week: validWeek(value.week)
+    };
+  }
+
+  function loadState() {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY));
+      if (stored) return normalizeState(stored);
+    } catch (_) {
+      // Private browsing and blocked storage should not stop the dashboard.
+    }
+    return defaultState();
+  }
+
+  function saveState() {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
 
   function parsePick(line) {
     const raw = String(line || "").trim();
     if (!raw) return null;
 
-    // Accept -3, +3, -3.5, +½, -3½, PK/pick/pick'em.
-    const pk = /\s+(pk|pick(?:'em)?|pickem)$/i.exec(raw);
-    if (pk) {
-      const teamText = raw.slice(0, pk.index).trim();
+    const pickEm = raw.match(/^(.*?)\s+(?:pk|pick(?:['’]?em)?)\s*$/i);
+    if (pickEm) {
+      const teamText = pickEm[1].trim();
       const team = aliasMap.get(normalize(teamText));
-      return team ? { raw, team, spread: 0 } : { raw, error: `Unknown team: ${teamText}` };
+      return team
+        ? { raw, team, spread: 0 }
+        : { raw, error: `Unknown team: ${teamText}` };
     }
 
-    const m = raw.match(/^(.*?)\s*([+-])\s*(\d+)?(?:\.5|½)?\s*$/);
-    if (!m) return { raw, error: "Use format like Bears -3 or Texans +0.5" };
+    // Accept -3, +3, -3.5, +½, -3½, and their pick-card equivalents.
+    const spreadMatch = raw.match(/^(.*?)\s*([+-])\s*(\d+(?:\.5|½)?|\.5|½)\s*$/);
+    if (!spreadMatch) {
+      return { raw, error: "Use format like Bears -3 or Texans +0.5" };
+    }
 
-    const teamText = m[1].trim();
-    const sign = m[2] === "-" ? -1 : 1;
-    const whole = m[3] ? Number(m[3]) : 0;
-    const hasHalf = /\.5|½/.test(raw.slice(m.index + m[1].length));
-    const spread = sign * (whole + (hasHalf ? 0.5 : 0));
+    const teamText = spreadMatch[1].trim();
+    const token = spreadMatch[3];
+    const sign = spreadMatch[2] === "-" ? -1 : 1;
+    const magnitude = token === "½" || token === ".5"
+      ? 0.5
+      : token.endsWith("½")
+        ? Number(token.slice(0, -1)) + 0.5
+        : Number(token);
     const team = aliasMap.get(normalize(teamText));
+
     if (!team) return { raw, error: `Unknown team: ${teamText}` };
-    return { raw, team, spread };
+    if (!Number.isFinite(magnitude)) return { raw, error: "Spread must be a whole number or half point" };
+    return { raw, team, spread: sign * magnitude };
   }
 
-  function loadState() {
-    try {
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (stored && Array.isArray(stored.entries)) return stored;
-    } catch (_) {}
-    return {
-      entries: structuredClone(CFG.starterEntries || [{ name: "Entry 1", picks: [] }]),
-      season: CFG.defaultSeason ?? "",
-      seasonType: CFG.defaultSeasonType ?? 2,
-      week: CFG.defaultWeek ?? ""
-    };
+  function formatSpread(value) {
+    const number = Object.is(value, -0) ? 0 : Number(value);
+    if (number === 0) return "PK";
+
+    const sign = number > 0 ? "+" : "-";
+    const absolute = Math.abs(number);
+    const whole = Math.floor(absolute);
+    const hasHalf = Math.abs(absolute - whole - 0.5) < 0.001;
+    return `${sign}${whole || ""}${hasHalf ? "½" : ""}`;
   }
 
-  function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  function formatMargin(value) {
+    if (value == null) return "—";
+    if (value === 0) return "0";
+    return `${value > 0 ? "+" : ""}${Number.isInteger(value) ? value : value.toFixed(1)}`;
+  }
+
+  function pickLabel(pick) {
+    return pick.error ? pick.raw : `${pick.team.full} ${formatSpread(pick.spread)}`;
+  }
+
+  function syncStateFromEditors() {
+    const entries = [...els.entryEditors.querySelectorAll(".entry-editor")].map((wrap, index) => ({
+      name: wrap.querySelector(".entry-name")?.value.trim() || `Entry ${index + 1}`,
+      picks: (wrap.querySelector(".entry-picks")?.value || "")
+        .split("\n")
+        .map(value => value.trim())
+        .filter(Boolean)
+    }));
+
+    state = normalizeState({
+      ...state,
+      entries,
+      season: els.seasonInput.value,
+      seasonType: els.seasonTypeInput.value,
+      week: els.weekInput.value
+    });
   }
 
   function renderEditors() {
     els.entryEditors.innerHTML = "";
-    state.entries.forEach((entry, idx) => {
+
+    state.entries.forEach((entry, index) => {
       const wrap = document.createElement("div");
       wrap.className = "entry-editor";
       wrap.innerHTML = `
         <div class="editor-head">
-          <input class="entry-name" data-entry="${idx}" value="${escapeHtml(entry.name || `Entry ${idx+1}`)}" aria-label="Entry name">
-          <button class="danger remove-entry" data-entry="${idx}" ${state.entries.length === 1 ? "disabled" : ""}>Remove</button>
+          <label class="editor-name-label" for="entry-name-${index}">Entry name</label>
+          <button class="danger remove-entry" data-entry="${index}" type="button" ${state.entries.length === 1 ? "disabled" : ""}>Remove</button>
         </div>
-        <textarea data-entry="${idx}" class="entry-picks" spellcheck="false" aria-label="Picks">${escapeHtml((entry.picks || []).join("\n"))}</textarea>
+        <input id="entry-name-${index}" class="entry-name" data-entry="${index}" value="${escapeHtml(entry.name)}" aria-label="Entry ${index + 1} name">
+        <label class="editor-picks-label" for="entry-picks-${index}">Picks</label>
+        <textarea id="entry-picks-${index}" data-entry="${index}" class="entry-picks" spellcheck="false" aria-label="Picks for ${escapeHtml(entry.name)}" placeholder="Bears -3\nBroncos +3">${escapeHtml(entry.picks.join("\n"))}</textarea>
+        <p class="editor-hint">Team + line, one per line</p>
       `;
       els.entryEditors.appendChild(wrap);
     });
-    els.seasonInput.value = state.season ?? "";
-    els.seasonTypeInput.value = String(state.seasonType ?? 2);
-    els.weekInput.value = state.week ?? "";
-  }
 
-  function readEditorsIntoState() {
-    state.entries = [...els.entryEditors.querySelectorAll(".entry-editor")].map((wrap, idx) => ({
-      name: wrap.querySelector(".entry-name").value.trim() || `Entry ${idx+1}`,
-      picks: wrap.querySelector(".entry-picks").value.split("\n").map(x => x.trim()).filter(Boolean)
-    }));
-    state.season = els.seasonInput.value ? Number(els.seasonInput.value) : "";
-    state.seasonType = Number(els.seasonTypeInput.value || 2);
-    state.week = els.weekInput.value ? Number(els.weekInput.value) : "";
+    els.seasonInput.value = state.season === "" ? "" : String(state.season);
+    els.seasonTypeInput.value = String(state.seasonType);
+    els.weekInput.value = state.week === "" ? "" : String(state.week);
   }
 
   function buildScoreboardUrl() {
-    const url = new URL(CFG.espnScoreboardBase);
-    if (state.season) url.searchParams.set("dates", String(state.season));
-    if (state.week) {
-      url.searchParams.set("week", String(state.week));
-      url.searchParams.set("seasontype", String(state.seasonType || 2));
+    const base = CFG.espnScoreboardBase || "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
+    const url = new URL(base, window.location.href);
+    const hasSeason = state.season !== "";
+    const hasWeek = state.week !== "";
+    const hasSeasonTypeOverride = state.seasonType !== DEFAULT_SEASON_TYPE;
+
+    // ESPN uses `dates=YYYY` for a season-wide scoreboard query.
+    if (hasSeason) url.searchParams.set("dates", String(state.season));
+    if (hasWeek) url.searchParams.set("week", String(state.week));
+    if (hasSeason || hasWeek || hasSeasonTypeOverride) {
+      url.searchParams.set("seasontype", String(state.seasonType));
     }
     return url.toString();
   }
 
+  function provider() {
+    const providers = window.CIRCA_PROVIDERS || {};
+    return providers[CFG.scoreProvider || "espn"];
+  }
+
   async function refreshScores() {
+    if (refreshInFlight) return;
+    refreshInFlight = true;
+    syncStateFromEditors();
     els.refreshBtn.disabled = true;
-    setBanner("Refreshing live scores…", false);
+    els.refreshBtn.textContent = "Refreshing…";
+    setBanner("Refreshing live scores…", "info");
+
+    const controller = new AbortController();
+    const timeoutMs = Number(CFG.requestTimeoutMs) > 0 ? Number(CFG.requestTimeoutMs) : 12000;
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
     try {
-      const res = await fetch(buildScoreboardUrl(), { cache: "no-store" });
-      if (!res.ok) throw new Error(`Score request failed (${res.status})`);
-      scoreboard = await res.json();
-      setBanner("", false);
-      renderDashboard();
-      els.lastUpdated.textContent = `Updated ${new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit", second:"2-digit"})}`;
-    } catch (err) {
-      console.error(err);
-      setBanner(
-        `Could not refresh ESPN scores. Your saved picks are safe. ${err.message}. ` +
-        `If this persists, see README.md for the recommended proxy/fallback path.`,
-        true
-      );
-      renderDashboard();
+      const scoreProvider = provider();
+      if (!scoreProvider?.getScoreboard) throw new Error("Score provider is not available");
+
+      const result = await scoreProvider.getScoreboard({
+        url: buildScoreboardUrl(),
+        signal: controller.signal
+      });
+      if (!result || !Array.isArray(result.games)) {
+        throw new Error("Score provider returned an invalid games list");
+      }
+      scoreboard = result;
+      lastSuccessfulUpdate = new Date();
+      updateLastUpdated();
+
+      if (!result.games.length) {
+        setBanner("Scores updated, but no games were returned for the selected filters.", "info");
+      } else if (result.skippedEvents) {
+        setBanner(`Scores updated. ${result.skippedEvents} game could not be read.`, "info");
+      } else {
+        setBanner("", null);
+      }
+      safeRender();
+    } catch (error) {
+      console.error(error);
+      const detail = error?.name === "AbortError"
+        ? "The request timed out."
+        : error?.message || "The score service was unavailable.";
+      setBanner(`Could not refresh live scores. Your saved picks are safe. ${detail}`, "error");
+      safeRender();
     } finally {
+      window.clearTimeout(timeout);
+      refreshInFlight = false;
       els.refreshBtn.disabled = false;
+      els.refreshBtn.textContent = "Refresh scores";
     }
   }
 
-  function setBanner(text, show) {
-    els.statusBanner.textContent = text;
-    els.statusBanner.classList.toggle("hidden", !show && !text);
+  function updateLastUpdated() {
+    els.lastUpdated.textContent = lastSuccessfulUpdate
+      ? `Last successful update ${lastSuccessfulUpdate.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}`
+      : "Waiting for first update";
   }
 
-  function getEvents() {
-    return Array.isArray(scoreboard?.events) ? scoreboard.events : [];
+  function setBanner(text, kind) {
+    els.statusBanner.textContent = text || "";
+    els.statusBanner.classList.toggle("hidden", !text);
+    els.statusBanner.classList.toggle("info", Boolean(text) && kind === "info");
+    els.statusBanner.classList.toggle("error", Boolean(text) && kind === "error");
   }
 
-  function eventForTeam(abbr) {
-    return getEvents().find(ev => {
-      const competitors = ev?.competitions?.[0]?.competitors || [];
-      return competitors.some(c => c?.team?.abbreviation === abbr);
-    }) || null;
+  function setSaveStatus(text, kind) {
+    els.saveStatus.textContent = text || "";
+    els.saveStatus.className = `save-status${kind ? ` ${kind}` : ""}`;
   }
 
-  function parseEvent(ev, selectedAbbr) {
-    if (!ev) return { found:false, state:"pre", statusText:"Game not found on loaded scoreboard" };
-    const comp = ev?.competitions?.[0];
-    const competitors = comp?.competitors || [];
-    const selected = competitors.find(c => c?.team?.abbreviation === selectedAbbr);
-    const opponent = competitors.find(c => c?.team?.abbreviation !== selectedAbbr);
-    if (!selected || !opponent) return { found:false, state:"pre", statusText:"Game data incomplete" };
+  function getGames() {
+    return Array.isArray(scoreboard?.games) ? scoreboard.games : [];
+  }
 
-    const selectedScore = Number(selected.score || 0);
-    const opponentScore = Number(opponent.score || 0);
-    const stateName = ev?.status?.type?.state || "pre";
-    const statusText = ev?.status?.type?.shortDetail || ev?.status?.type?.detail || "Scheduled";
-    const date = ev?.date ? new Date(ev.date) : null;
+  function createGradeContext() {
+    const gamesByTeam = new Map();
+    for (const game of getGames()) {
+      [game.home, game.away].forEach(team => {
+        if (team?.abbr && !gamesByTeam.has(team.abbr)) gamesByTeam.set(team.abbr, game);
+      });
+    }
 
+    const grades = new Map();
     return {
-      found:true,
-      ev,
-      state:stateName,
-      statusText,
-      date,
-      selectedName:selected.team?.displayName || selected.team?.name || selectedAbbr,
-      selectedAbbr,
-      selectedScore,
-      opponentName:opponent.team?.displayName || opponent.team?.name || opponent.team?.abbreviation,
-      opponentAbbr:opponent.team?.abbreviation || "",
-      opponentScore,
-      homeAway:selected.homeAway,
-      selectedWinner:selected.winner
+      grade(pick) {
+        const key = pick.error ? `error:${pick.raw}` : `${pick.team.abbr}:${pick.spread}`;
+        if (!grades.has(key)) grades.set(key, gradePick(pick, gamesByTeam));
+        return grades.get(key);
+      }
     };
   }
 
-  function gradePick(pick) {
-    if (pick.error) return { status:"pending", label:"INPUT ERROR", detail:pick.error, margin:null };
-    const g = parseEvent(eventForTeam(pick.team.abbr), pick.team.abbr);
-    if (!g.found) return { status:"pending", label:"NOT FOUND", detail:g.statusText, margin:null, game:g };
+  function gradePick(pick, gamesByTeam) {
+    if (pick.error) {
+      return { status: "pending", label: "INPUT ERROR", detail: pick.error, margin: null };
+    }
 
-    const margin = (g.selectedScore + pick.spread) - g.opponentScore;
-
-    if (g.state === "pre") {
+    if (!scoreboard) {
       return {
-        status:"pending",
-        label:"PENDING",
-        detail: kickoffText(g),
-        margin:null,
-        game:g
+        status: "pending",
+        label: "WAITING",
+        detail: "Waiting for the first score update",
+        margin: null
       };
     }
 
-    const status = margin > 0 ? "cover" : margin < 0 ? "lose" : "push";
-    const label = g.state === "post"
-      ? (status === "cover" ? "WIN" : status === "lose" ? "LOSS" : "PUSH")
-      : (status === "cover" ? "COVERING" : status === "lose" ? "LOSING" : "PUSH");
+    const sourceGame = gamesByTeam.get(pick.team.abbr);
+    if (!sourceGame) {
+      return {
+        status: "pending",
+        label: "NOT FOUND",
+        detail: "No matching game on the loaded scoreboard",
+        margin: null
+      };
+    }
 
-    return {
-      status,
-      label,
-      margin,
-      detail:g.statusText,
-      game:g
+    const selected = sourceGame.home.abbr === pick.team.abbr ? sourceGame.home : sourceGame.away;
+    const opponent = selected === sourceGame.home ? sourceGame.away : sourceGame.home;
+    const game = {
+      ...sourceGame,
+      selectedAbbr: selected.abbr,
+      selectedName: selected.name,
+      selectedScore: selected.score,
+      opponentAbbr: opponent.abbr,
+      opponentName: opponent.name,
+      opponentScore: opponent.score
     };
+
+    if (game.isCanceled) {
+      return { status: "pending", label: "CANCELED", detail: game.statusText, margin: null, game };
+    }
+    if (game.isPostponed) {
+      return { status: "pending", label: "POSTPONED", detail: game.statusText, margin: null, game };
+    }
+    if (game.state === "pre") {
+      return { status: "pending", label: "PENDING", detail: kickoffText(game), margin: null, game };
+    }
+
+    const margin = (game.selectedScore + pick.spread) - game.opponentScore;
+    const status = margin > 0 ? "cover" : margin < 0 ? "lose" : "push";
+    const label = game.state === "post"
+      ? status === "cover" ? "WIN" : status === "lose" ? "LOSS" : "PUSH"
+      : status === "cover" ? "COVERING" : status === "lose" ? "LOSING" : "PUSH";
+
+    return { status, label, detail: gameStatusText(game), margin, game };
   }
 
-  function kickoffText(g) {
-    if (!g?.date || Number.isNaN(g.date.getTime())) return g?.statusText || "Scheduled";
-    return g.date.toLocaleString([], { weekday:"short", hour:"numeric", minute:"2-digit" });
+  function kickoffText(game) {
+    const date = game?.startTime ? new Date(game.startTime) : null;
+    if (!date || Number.isNaN(date.getTime())) return game?.statusText || "Scheduled";
+    return new Intl.DateTimeFormat([], {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(date);
+  }
+
+  function gameStatusText(game) {
+    if (game?.state === "post") return "Final";
+    if (game?.period) {
+      const period = game.period > 4 ? "OT" : `Q${game.period}`;
+      return `${period}${game.clock ? ` ${game.clock}` : ""}`;
+    }
+    return game?.statusText || "In progress";
   }
 
   function scoreText(grade) {
-    const g = grade.game;
-    if (!g?.found) return grade.detail || "—";
-    if (g.state === "pre") return kickoffText(g);
-    return `${g.selectedAbbr} ${g.selectedScore} – ${g.opponentScore} ${g.opponentAbbr} · ${g.statusText}`;
+    const game = grade.game;
+    if (!game?.selectedAbbr) return grade.detail || "—";
+
+    const matchup = `${game.selectedAbbr} vs ${game.opponentAbbr}`;
+    if (game.isCanceled || game.isPostponed) return `${matchup} · ${game.statusText}`;
+    if (game.state === "pre") return `${matchup} · ${kickoffText(game)}`;
+    return `${game.selectedAbbr} ${game.selectedScore} – ${game.opponentScore} ${game.opponentAbbr} · ${gameStatusText(game)}`;
   }
 
-  function marginText(grade) {
-    if (grade.margin == null) return "—";
-    const n = grade.margin;
-    if (n === 0) return "0 (push)";
-    return `${n > 0 ? "+" : ""}${Number.isInteger(n) ? n : n.toFixed(1)}`;
+  function pickIdentity(pick) {
+    return pick.error ? `error:${pick.raw}` : `${pick.team.abbr}:${pick.spread}`;
   }
 
   function renderDashboard() {
-    const parsedEntries = state.entries.map(e => ({
-      name:e.name,
-      picks:(e.picks || []).map(parsePick).filter(Boolean)
+    const context = createGradeContext();
+    const entries = state.entries.map(entry => ({
+      name: entry.name,
+      picks: entry.picks.map(parsePick).filter(Boolean)
     }));
+    const uniqueRows = new Map();
 
     els.entryCards.innerHTML = "";
-    for (const entry of parsedEntries) {
-      const grades = entry.picks.map(p => ({ pick:p, grade:gradePick(p) }));
-      const counts = { cover:0, lose:0, push:0, pending:0 };
-      grades.forEach(x => counts[x.grade.status]++);
+    for (const entry of entries) {
+      const grades = entry.picks.map(pick => ({ pick, grade: context.grade(pick) }));
+      const counts = { cover: 0, lose: 0, push: 0, pending: 0 };
+      grades.forEach(({ grade }) => counts[grade.status]++);
+
+      grades.forEach(({ pick, grade }) => {
+        const key = pickIdentity(pick);
+        if (!uniqueRows.has(key)) uniqueRows.set(key, { pick, grade, entryNames: [] });
+        const row = uniqueRows.get(key);
+        if (!row.entryNames.includes(entry.name)) row.entryNames.push(entry.name);
+      });
 
       const card = document.createElement("article");
       card.className = "entry-card";
       card.innerHTML = `
-        <h3>${escapeHtml(entry.name)}</h3>
-        <div class="entry-summary">
-          <span class="count cover">${counts.cover} ${counts.cover === 1 ? "cover/win" : "covering/wins"}</span>
-          <span class="count lose">${counts.lose} ${counts.lose === 1 ? "loss" : "losing/losses"}</span>
-          <span class="count push">${counts.push} ${counts.push === 1 ? "push" : "pushes"}</span>
+        <div class="entry-card-header">
+          <div>
+            <p class="eyebrow">Contest entry</p>
+            <h3>${escapeHtml(entry.name)}</h3>
+          </div>
+          <span class="pick-total">${entry.picks.length} ${entry.picks.length === 1 ? "pick" : "picks"}</span>
+        </div>
+        <div class="entry-summary" aria-label="${counts.cover} covering or winning, ${counts.lose} losing or lost, ${counts.push} pushes, ${counts.pending} pending">
+          <span class="count cover">${counts.cover} cover/win</span>
+          <span class="count lose">${counts.lose} lose/loss</span>
+          <span class="count push">${counts.push} push${counts.push === 1 ? "" : "es"}</span>
           <span class="count pending">${counts.pending} pending</span>
         </div>
-        <ul class="pick-list">
-          ${grades.map(({pick,grade}) => `
-            <li class="pick-row">
-              <div>
-                <div class="pick-main">${pick.error ? escapeHtml(pick.raw) : `${escapeHtml(pick.team.full)} ${displaySpread(pick.spread)}`}</div>
-                <div class="pick-sub">${escapeHtml(scoreText(grade))}${grade.margin != null ? ` · ATS margin ${escapeHtml(marginText(grade))}` : ""}</div>
-              </div>
-              <span class="badge ${grade.status}">${escapeHtml(grade.label)}</span>
-            </li>`).join("")}
-        </ul>
+        ${grades.length ? `
+          <ul class="pick-list">
+            ${grades.map(({ pick, grade }) => `
+              <li class="pick-row">
+                <div class="pick-copy">
+                  <div class="pick-main">${escapeHtml(pickLabel(pick))}</div>
+                  <div class="pick-sub">${escapeHtml(scoreText(grade))}</div>
+                  ${grade.margin != null ? `<div class="pick-margin">ATS margin <strong>${escapeHtml(formatMargin(grade.margin))}</strong></div>` : ""}
+                </div>
+                <span class="badge ${grade.status}" aria-label="${escapeHtml(grade.label)}">${escapeHtml(grade.label)}</span>
+              </li>`).join("")}
+          </ul>` : `<p class="empty-entry">No picks yet. Add one pick per line above.</p>`}
       `;
       els.entryCards.appendChild(card);
     }
 
-    // Deduplicate selected picks by team + spread.
-    const uniq = new Map();
-    parsedEntries.flatMap(e => e.picks).forEach(p => {
-      const key = p.error ? `error:${p.raw}` : `${p.team.abbr}:${p.spread}`;
-      if (!uniq.has(key)) uniq.set(key, p);
-    });
+    const rows = [...uniqueRows.values()];
+    if (!rows.length) {
+      els.gamesBody.innerHTML = `<tr><td colspan="6" class="empty-table">Add a pick above to see its game here.</td></tr>`;
+      return;
+    }
 
-    els.gamesBody.innerHTML = [...uniq.values()].map(p => {
-      const grade = gradePick(p);
-      if (p.error) {
-        return `<tr><td><strong>${escapeHtml(p.raw)}</strong></td><td>—</td><td>${escapeHtml(p.error)}</td><td><span class="badge pending">INPUT ERROR</span></td><td>—</td></tr>`;
+    els.gamesBody.innerHTML = rows.map(({ pick, grade, entryNames }) => {
+      if (pick.error) {
+        return `
+          <tr>
+            <td><strong>${escapeHtml(pick.raw)}</strong></td>
+            <td>—</td>
+            <td>${escapeHtml(pick.error)}</td>
+            <td><span class="badge pending">INPUT ERROR</span></td>
+            <td>—</td>
+            <td>${escapeHtml(entryNames.join(", "))}</td>
+          </tr>`;
       }
-      const g = grade.game;
-      const gameText = g?.found ? `${escapeHtml(g.selectedName)} vs ${escapeHtml(g.opponentName)}` : "Not found";
+
+      const game = grade.game;
+      const gameText = game?.selectedName
+        ? `${game.selectedName} vs ${game.opponentName}`
+        : "Not found";
       return `
         <tr>
-          <td><strong>${escapeHtml(p.team.full)} ${displaySpread(p.spread)}</strong></td>
-          <td>${gameText}</td>
+          <td><strong>${escapeHtml(pickLabel(pick))}</strong></td>
+          <td>${escapeHtml(gameText)}</td>
           <td>${escapeHtml(scoreText(grade))}</td>
           <td><span class="badge ${grade.status}">${escapeHtml(grade.label)}</span></td>
-          <td>${escapeHtml(marginText(grade))}</td>
+          <td>${escapeHtml(formatMargin(grade.margin))}</td>
+          <td>${escapeHtml(entryNames.join(", "))}</td>
         </tr>`;
     }).join("");
   }
 
-  function escapeHtml(v) {
-    return String(v ?? "").replace(/[&<>"']/g, c => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-    })[c]);
+  function safeRender() {
+    try {
+      renderDashboard();
+    } catch (error) {
+      console.error(error);
+      setBanner("The dashboard could not render this score response. Your saved picks are safe.", "error");
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[character]);
   }
 
   els.addEntryBtn.addEventListener("click", () => {
-    readEditorsIntoState();
-    state.entries.push({ name:`Entry ${state.entries.length + 1}`, picks:[] });
+    syncStateFromEditors();
+    state.entries.push({ name: `Entry ${state.entries.length + 1}`, picks: [] });
     renderEditors();
+    setSaveStatus("Unsaved changes", "pending");
   });
 
-  els.entryEditors.addEventListener("click", e => {
-    const btn = e.target.closest(".remove-entry");
-    if (!btn || btn.disabled) return;
-    readEditorsIntoState();
-    state.entries.splice(Number(btn.dataset.entry), 1);
+  els.entryEditors.addEventListener("click", event => {
+    const button = event.target.closest(".remove-entry");
+    if (!button || button.disabled) return;
+    syncStateFromEditors();
+    state.entries.splice(Number(button.dataset.entry), 1);
     renderEditors();
+    safeRender();
+    setSaveStatus("Unsaved changes", "pending");
+  });
+
+  els.entryEditors.addEventListener("input", () => setSaveStatus("Unsaved changes", "pending"));
+  [els.seasonInput, els.seasonTypeInput, els.weekInput].forEach(input => {
+    input.addEventListener("change", () => setSaveStatus("Unsaved changes", "pending"));
   });
 
   els.saveBtn.addEventListener("click", async () => {
-    readEditorsIntoState();
-    saveState();
-    renderDashboard();
+    syncStateFromEditors();
+    const saved = saveState();
+    if (!saved) {
+      setSaveStatus("Could not save", "error");
+      setBanner("Your browser blocked local storage, so these changes may not survive a reload.", "error");
+      safeRender();
+      return;
+    }
+    setSaveStatus("Saved locally", "success");
+    safeRender();
+    await refreshScores();
+  });
+
+  els.clearFiltersBtn.addEventListener("click", async () => {
+    syncStateFromEditors();
+    state.season = "";
+    state.seasonType = DEFAULT_SEASON_TYPE;
+    state.week = "";
+    renderEditors();
+    const saved = saveState();
+    setSaveStatus(saved ? "Using current scoreboard" : "Could not save", saved ? "success" : "error");
     await refreshScores();
   });
 
   els.refreshBtn.addEventListener("click", refreshScores);
 
   renderEditors();
-  renderDashboard();
+  updateLastUpdated();
+  safeRender();
   refreshScores();
 
-  clearInterval(timer);
-  timer = setInterval(refreshScores, CFG.refreshMs || 30000);
+  const refreshMs = Number(CFG.refreshMs) > 0 ? Number(CFG.refreshMs) : 30000;
+  clearInterval(refreshTimer);
+  refreshTimer = window.setInterval(refreshScores, refreshMs);
+
+  window.addEventListener("unhandledrejection", event => {
+    console.error(event.reason);
+    setBanner("Something unexpected happened. Your saved picks are safe.", "error");
+  });
 })();

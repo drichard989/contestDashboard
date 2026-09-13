@@ -4,7 +4,7 @@
 
 Turn this starter into a polished personal live dashboard hosted at:
 
-**circapicks.danielrichard.com**
+**contestDashboard.danielrichard.com**
 
 The dashboard tracks manually entered Circa contest selections against live NFL scores.
 
@@ -183,7 +183,7 @@ Worker responsibilities:
 - fetch ESPN
 - cache briefly (10–20 sec)
 - normalize response
-- return permissive CORS headers only for `https://circapicks.danielrichard.com`
+- return permissive CORS headers only for `https://contestDashboard.danielrichard.com`
 - never expose secrets because none should be needed
 
 Do not introduce a paid dependency.
@@ -286,7 +286,7 @@ CNAME
 Contents:
 
 ```text
-circapicks.danielrichard.com
+contestDashboard.danielrichard.com
 ```
 
 No build step is required for the current starter.
@@ -310,4 +310,4 @@ The project is done when:
 7. Shared picks across entries are consistent.
 8. Finals are labeled WIN / LOSS / PUSH.
 9. Score outages do not erase picks.
-10. It deploys cleanly to GitHub Pages at `circapicks.danielrichard.com`.
+10. It deploys cleanly to GitHub Pages at `contestDashboard.danielrichard.com`.

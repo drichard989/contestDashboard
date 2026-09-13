@@ -4,7 +4,7 @@ A tiny, static GitHub Pages dashboard for tracking NFL contest picks against liv
 
 Target hostname:
 
-**https://circapicks.danielrichard.com**
+**https://contestDashboard.danielrichard.com**
 
 ## What is included
 
@@ -19,7 +19,7 @@ Target hostname:
 - Automatic refresh every 30 seconds
 - Browser `localStorage` persistence
 - Responsive/mobile layout
-- `CNAME` preconfigured for `circapicks.danielrichard.com`
+- `CNAME` preconfigured for `contestDashboard.danielrichard.com`
 
 ## Score source
 
@@ -44,7 +44,7 @@ Because browsers sometimes treat `file://` fetches differently, use a tiny local
 Python:
 
 ```bash
-cd circa-picks-dashboard
+# Run this from the project root.
 python3 -m http.server 8080
 ```
 
@@ -62,21 +62,21 @@ Then open:
    - Source: **Deploy from a branch**
    - Branch: `main`
    - Folder: `/ (root)`
-5. GitHub Pages should detect the included `CNAME` file.
+5. GitHub Pages should detect the included `CNAME` file for `contestDashboard.danielrichard.com`.
 
 ## Custom domain DNS
 
 At the DNS provider for `danielrichard.com`, create:
 
 - Type: `CNAME`
-- Host/name: `circapicks`
+- Host/name: `contestDashboard`
 - Target: `<YOUR-GITHUB-USERNAME>.github.io`
 
 Do **not** literally use the placeholder above. Use the actual GitHub Pages hostname for the account/repository.
 
 Then in GitHub Pages settings set the custom domain to:
 
-`circapicks.danielrichard.com`
+`contestDashboard.danielrichard.com`
 
 After DNS resolves, enable **Enforce HTTPS**.
 
@@ -130,7 +130,8 @@ Bears PK
 - `index.html` — UI shell
 - `style.css` — responsive styling
 - `config.js` — endpoint, refresh cadence, starter entries
-- `app.js` — parsing, score retrieval, team matching, ATS grading
+- `providers/espn.js` — ESPN fetch and response normalization
+- `app.js` — input parsing, team matching, ATS grading, rendering, persistence
 - `CNAME` — GitHub Pages custom domain
 - `CODEX_HANDOFF.md` — requirements and recommended next steps for Codex
 - `TEST_PLAN.md` — manual acceptance checklist
@@ -141,7 +142,8 @@ Bears PK
 2. Direct browser fetches depend on ESPN continuing to allow cross-origin requests.
 3. This starter does not scrape the weekly Circa card.
 4. Contest lines are entered manually and intentionally never replaced by sportsbook market odds.
-5. Browser storage is per-device/browser. If you want entries synced across devices later, add a backend or a shareable URL format.
+5. Browser storage is per-device/browser. Save picks after changing entries or scoreboard filters.
+6. If you want entries synced across devices later, add a backend or a shareable URL format.
 
 ## Recommended production hardening
 

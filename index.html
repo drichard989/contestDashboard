@@ -4,84 +4,105 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#0b2a52" />
+  <meta name="description" content="A personal live dashboard for tracking Circa NFL picks against live scores." />
   <title>Circa Picks Live Dashboard</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
-    <div>
+    <div class="brand-lockup">
+      <p class="eyebrow">Weekly contest tracker</p>
       <h1>Circa Picks</h1>
-      <p>Live NFL score + ATS dashboard</p>
+      <p>Live NFL scores against your stored contest lines</p>
     </div>
     <div class="top-actions">
-      <span id="lastUpdated">Not updated yet</span>
-      <button id="refreshBtn">Refresh scores</button>
+      <span id="lastUpdated" class="last-updated" role="status" aria-live="polite">Waiting for first update</span>
+      <button id="refreshBtn" type="button">Refresh scores</button>
     </div>
   </header>
 
   <main>
-    <section class="panel setup">
+    <section class="panel setup" aria-labelledby="setupTitle">
       <div class="section-head">
         <div>
-          <h2>Entries</h2>
-          <p>Enter one pick per line using <strong>Team Spread</strong>, e.g. <code>Bears -3</code>.</p>
+          <p class="eyebrow">Your card</p>
+          <h2 id="setupTitle">Enter your Circa picks</h2>
+          <p>One pick per line. Your entered Circa line is always used for grading.</p>
         </div>
+        <span class="contest-line-note">Example: <code>Bears -3</code></span>
       </div>
 
       <div id="entryEditors" class="entry-editors"></div>
 
       <div class="setup-actions">
-        <button id="addEntryBtn" class="secondary">+ Add entry</button>
-        <button id="saveBtn">Save picks</button>
+        <button id="addEntryBtn" class="secondary" type="button">+ Add entry</button>
+        <span id="saveStatus" class="save-status" role="status" aria-live="polite"></span>
+        <button id="saveBtn" type="button">Save picks</button>
       </div>
 
-      <details class="advanced">
-        <summary>Week / season override</summary>
+      <details class="advanced" open>
+        <summary>Scoreboard filters</summary>
         <div class="advanced-grid">
           <label>
-            Season
-            <input id="seasonInput" type="number" min="2020" max="2100" />
+            Season <span class="label-hint">optional</span>
+            <input id="seasonInput" type="number" inputmode="numeric" min="2020" max="2100" placeholder="Auto" aria-describedby="filterHelp" />
           </label>
           <label>
             Season type
-            <select id="seasonTypeInput">
+            <select id="seasonTypeInput" aria-describedby="filterHelp">
               <option value="1">Preseason</option>
               <option value="2" selected>Regular season</option>
               <option value="3">Postseason</option>
             </select>
           </label>
           <label>
-            Week
-            <input id="weekInput" type="number" min="1" max="22" />
+            Week <span class="label-hint">optional</span>
+            <input id="weekInput" type="number" inputmode="numeric" min="1" max="22" placeholder="Auto" aria-describedby="filterHelp" />
           </label>
         </div>
-        <p class="muted">Leave season/week blank to let ESPN return its current scoreboard.</p>
+        <div class="advanced-footer">
+          <p id="filterHelp" class="muted">Leave season and week blank to use the current NFL scoreboard. Save after changing filters.</p>
+          <button id="clearFiltersBtn" class="text-button" type="button">Use current scoreboard</button>
+        </div>
       </details>
     </section>
 
-    <section id="statusBanner" class="status-banner hidden"></section>
+    <section id="statusBanner" class="status-banner hidden" role="status" aria-live="polite"></section>
 
-    <section id="entryCards" class="entry-cards"></section>
+    <section aria-labelledby="entriesTitle">
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow">At a glance</p>
+          <h2 id="entriesTitle">Your entries</h2>
+        </div>
+        <p class="muted">Updates automatically every 30 seconds</p>
+      </div>
+      <div id="entryCards" class="entry-cards"></div>
+    </section>
 
-    <section class="panel">
+    <section class="panel games-panel" aria-labelledby="gamesTitle">
       <div class="section-head">
         <div>
-          <h2>All selected games</h2>
-          <p>Current game score and status against your stored contest line.</p>
+          <p class="eyebrow">Shared game view</p>
+          <h2 id="gamesTitle">All selected games</h2>
+          <p>Duplicate picks are shown once and reused across every entry.</p>
         </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Pick</th>
-              <th>Game</th>
-              <th>Score / status</th>
-              <th>ATS</th>
-              <th>Margin vs line</th>
+              <th scope="col">Pick</th>
+              <th scope="col">Game</th>
+              <th scope="col">Score / status</th>
+              <th scope="col">ATS</th>
+              <th scope="col">Margin vs line</th>
+              <th scope="col">Used in</th>
             </tr>
           </thead>
-          <tbody id="gamesBody"></tbody>
+          <tbody id="gamesBody">
+            <tr><td colspan="6" class="empty-table">Add a pick above to see its game here.</td></tr>
+          </tbody>
         </table>
       </div>
     </section>
@@ -89,12 +110,12 @@
 
   <footer>
     <p>
-      Personal hobby dashboard. Live scores come from an unofficial, unauthenticated ESPN web endpoint.
-      It is not a guaranteed or supported API and can change without notice.
+      Personal hobby dashboard. Live scores come from an unofficial ESPN web endpoint and may be unavailable or change without notice.
     </p>
   </footer>
 
   <script src="config.js"></script>
+  <script src="providers/espn.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
