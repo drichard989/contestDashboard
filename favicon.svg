@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Contest Picks</title>
+  <desc id="desc">A navy and blue contest picks mark with a green check.</desc>
+  <rect width="64" height="64" rx="14" fill="#0b2a52"/>
+  <rect x="8" y="8" width="48" height="48" rx="12" fill="#164d8d"/>
+  <path d="M38 20.5a13.5 13.5 0 1 0 0 23" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="6"/>
+  <path d="M31 32h13" stroke="#f2c75c" stroke-linecap="round" stroke-width="5"/>
+  <path d="m38 41 4 4 9-10" fill="none" stroke="#55d98a" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+</svg>
