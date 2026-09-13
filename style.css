@@ -279,7 +279,7 @@ label input, label select { display: block; margin-top: 5px; font-weight: 400; }
 .picks-panel { padding-bottom: 12px; }
 .picks-actions { display: flex; align-items: center; gap: 10px; }
 .entry-record-panel {
-  margin-top: 18px;
+  margin-top: 0;
   padding: 15px;
   border: 1px solid var(--line);
   border-radius: 12px;

@@ -34,7 +34,7 @@ Verify an unknown team shows an input error without breaking other picks.
 4. Reload the browser.
 5. Confirm all entries and week settings remain.
 
-The All picks view should also have an **All-picks preset** button. Confirm it loads the two checked-in weekly entries for the active player and refreshes their live statuses.
+Open the all-picks preset link and confirm it loads the checked-in weekly entries for the active player and refreshes their live statuses. Confirm Ken loads his player-specific five-pick preset.
 
 If the same pick appears in both entries, confirm All picks shows it once and lists both entries in the Entries column. Entry-level records should still count each entry's pick.
 

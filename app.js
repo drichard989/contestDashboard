@@ -73,11 +73,9 @@
     picksView: document.getElementById("picksView"),
     activePlayerLabel: document.getElementById("activePlayerLabel"),
     activePlayerName: document.getElementById("activePlayerName"),
-    picksPlayerName: document.getElementById("picksPlayerName"),
     entryCards: document.getElementById("entryCards"),
     picksBody: document.getElementById("picksBody"),
     entryRecords: document.getElementById("entryRecords"),
-    allPicksPresetBtn: document.getElementById("allPicksPresetBtn"),
     decreaseFontBtn: document.getElementById("decreaseFontBtn"),
     increaseFontBtn: document.getElementById("increaseFontBtn"),
     fontSizeValue: document.getElementById("fontSizeValue"),
@@ -150,9 +148,11 @@
     return normalized.length ? normalized : [{ name: "Entry 1", picks: [] }];
   }
 
-  function allPicksPreset() {
-    return Array.isArray(CFG.allPicksPreset)
-      ? CFG.allPicksPreset.map(normalizeEntry)
+  function allPicksPreset(playerId) {
+    const playerPreset = CFG.playerPresets?.[playerId];
+    const configuredPreset = Array.isArray(playerPreset) ? playerPreset : CFG.allPicksPreset;
+    return Array.isArray(configuredPreset)
+      ? configuredPreset.map(normalizeEntry)
       : [];
   }
 
@@ -183,7 +183,7 @@
       return { playerSelected: true, presetLoaded: false };
     }
 
-    const preset = allPicksPreset();
+    const preset = allPicksPreset(player.id);
     if (!preset.length) return { playerSelected: true, presetLoaded: false };
 
     player.entries = preset.map((entry, index) => normalizeEntry(entry, index));
@@ -344,7 +344,6 @@
     const name = player?.name || "Player";
     els.activePlayerLabel.textContent = name;
     els.activePlayerName.textContent = name;
-    els.picksPlayerName.textContent = name;
   }
 
   function renderPlayerTabs() {
@@ -970,24 +969,6 @@
 
   els.decreaseFontBtn.addEventListener("click", () => adjustFontScale(-1));
   els.increaseFontBtn.addEventListener("click", () => adjustFontScale(1));
-
-  els.allPicksPresetBtn.addEventListener("click", async () => {
-    const preset = allPicksPreset();
-    if (!preset.length) {
-      setSaveStatus("Preset unavailable", "error");
-      setBanner("No all-picks preset is configured yet.", "error");
-      return;
-    }
-
-    syncStateFromEditors();
-    const player = activePlayer();
-    player.entries = preset;
-    renderEditors();
-    const saved = saveState();
-    safeRender();
-    setSaveStatus(saved ? "All-picks preset loaded" : "Preset loaded for this session", saved ? "success" : "error");
-    await refreshScores();
-  });
 
   applyFontScale();
   const deepLinkState = applyDeepLink();

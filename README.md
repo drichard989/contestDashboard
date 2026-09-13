@@ -14,7 +14,7 @@ Target hostname:
 - Player tabs for Michael-Daniel, Rob, Ken, Ryan, and Andy
 - Independent saved picks for each player
 - An all-picks view showing each unique pick and the entries using it
-- An all-picks preset button for loading the checked-in weekly entries
+- A checked-in weekly preset that can be loaded through deep links
 - Deep links to the all-picks preset for any player
 - Per-entry won/lost/tied records, with finished teams in the solid category color, live picks shown in parentheses, and pending teams listed by selection
 - Pick input such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
@@ -145,7 +145,7 @@ Bears PK
 
 ### Weekly preset and deep links
 
-Update `ALL_PICKS_PRESET` in `config.js` with the current week's two entries, then push the change. The **All-picks preset** button loads those entries for the active player.
+Update `ALL_PICKS_PRESET` in `config.js` with the default current week's entries, or add a player-specific entry under `playerPresets`. Then push the change. The all-picks deep links load the matching preset for the selected player.
 
 Use these links to open the preset directly:
 

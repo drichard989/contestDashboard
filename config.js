@@ -21,6 +21,19 @@ const ALL_PICKS_PRESET = [
   }
 ];
 
+const KEN_PRESET = [
+  {
+    name: "Entry 1",
+    picks: [
+      "Eagles -4.5",
+      "Texans +0.5",
+      "Packers +1.5",
+      "Broncos +3",
+      "Jets +1.5"
+    ]
+  }
+];
+
 window.CIRCA_CONFIG = {
   // Refresh live scores every 10 seconds.
   refreshMs: 10000,
@@ -50,8 +63,11 @@ window.CIRCA_CONFIG = {
   defaultSeasonType: 2,
   defaultWeek: null,
 
-  // Hard-code the current week's entries here, then push the change with the site.
-  // The button in All picks loads this same preset into the active player's card.
+  // Hard-code the default current week's entries here, then push the change with the site.
   allPicksPreset: ALL_PICKS_PRESET,
+  // Add player-specific weekly presets here when a player has a different card.
+  playerPresets: {
+    ken: KEN_PRESET
+  },
   starterEntries: ALL_PICKS_PRESET
 };
