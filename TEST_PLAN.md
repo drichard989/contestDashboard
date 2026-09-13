@@ -40,12 +40,12 @@ If the same pick appears in both entries, confirm All picks shows it once and li
 
 ## Refresh and entry records
 
-- Confirm the dashboard fetches scores on initial load and automatically every 10 seconds. While a game is live, confirm its clock advances between score requests and the last-successful-update time changes after each successful fetch.
+- Confirm the dashboard fetches scores on initial load and automatically every 10 seconds. While a game is live, confirm its score, ESPN period, and ESPN-reported clock change only after a score request, with no local countdown between requests; the last-successful-update time should change after each successful fetch.
 - In All picks, confirm each entry has separate won, lost, tied, and pending counts.
 - Live covering/losing/push results should appear in parentheses beside the matching category; final covering/losing/push results should count as won/lost/tied games and list their team after the count in the solid category color.
-- Pending games should list the selected team and a countdown to kickoff; the record categories should wrap into two columns on wider screens.
+- Pending games should list the selected team without a client-side countdown; the record categories should wrap into two columns on wider screens.
 - Open `?preset=all-picks` and confirm it selects All picks and loads the checked-in preset.
-- Open the preset link with `player=michael-daniel`, `player=rob`, `player=ken`, and `player=ryan`; confirm each selects the requested player and loads the preset.
+- Open the preset link with `player=michael-daniel`, `player=rob`, `player=ken`, `player=ryan`, and `player=andy`; confirm each selects the requested player and loads the preset.
 - Open a link with only `?player=rob`; confirm it selects Rob without replacing Rob's saved entries.
 
 ## ATS math

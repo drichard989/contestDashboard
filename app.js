@@ -8,12 +8,12 @@
   const DEFAULT_FONT_SCALE = typeof window.matchMedia === "function" && window.matchMedia("(min-width: 761px)").matches ? 1.08 : 1;
   const DEFAULT_SEASON_TYPE = 2;
   const SCORE_REFRESH_MS = Number(CFG.refreshMs) > 0 ? Number(CFG.refreshMs) : 10000;
-  const DISPLAY_REFRESH_MS = 1000;
   const FALLBACK_PLAYERS = [
     { id: "michael-daniel", name: "Michael-Daniel" },
     { id: "rob", name: "Rob" },
     { id: "ken", name: "Ken" },
-    { id: "ryan", name: "Ryan" }
+    { id: "ryan", name: "Ryan" },
+    { id: "andy", name: "Andy" }
   ];
   const PLAYER_DEFINITIONS = (Array.isArray(CFG.players) && CFG.players.length ? CFG.players : FALLBACK_PLAYERS)
     .map((player, index) => ({
@@ -98,7 +98,6 @@
   let lastSuccessfulUpdate = null;
   let refreshTimer = null;
   let refreshInFlight = false;
-  let scoreboardUpdatedAt = 0;
   let fontScale = loadFontScale();
 
   function loadFontScale() {
@@ -459,8 +458,7 @@
         throw new Error("Score provider returned an invalid games list");
       }
       scoreboard = result;
-      scoreboardUpdatedAt = Date.now();
-      lastSuccessfulUpdate = new Date(scoreboardUpdatedAt);
+      lastSuccessfulUpdate = new Date();
       updateLastUpdated();
 
       if (!result.games.length) {
@@ -615,73 +613,33 @@
     }).format(date);
   }
 
-  function pendingTimeText(game) {
-    if (!game) return "";
-    if (game.isCanceled || game.isPostponed) return game.statusText || "Unavailable";
-
-    const startTime = game.startTime ? new Date(game.startTime).getTime() : NaN;
-    if (!Number.isFinite(startTime)) return "";
-
-    const remainingMinutes = Math.ceil((startTime - Date.now()) / 60000);
-    if (remainingMinutes <= 0) return "starting soon";
-    if (remainingMinutes < 60) return `starts in ${remainingMinutes}m`;
-
-    const hours = Math.floor(remainingMinutes / 60);
-    const minutes = remainingMinutes % 60;
-    if (hours < 24) return `starts in ${hours}h${minutes ? ` ${minutes}m` : ""}`;
-
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
-    return `starts in ${days}d${remainingHours ? ` ${remainingHours}h` : ""}`;
-  }
-
-  function clockSeconds(value) {
-    const parts = String(value || "").trim().split(":").map(Number);
-    if (parts.length !== 2 || parts.some(part => !Number.isFinite(part))) return null;
-    return Math.max(0, parts[0] * 60 + parts[1]);
-  }
-
-  function formatClock(seconds) {
-    const wholeSeconds = Math.max(0, Math.ceil(Number(seconds) || 0));
-    return `${Math.floor(wholeSeconds / 60)}:${String(wholeSeconds % 60).padStart(2, "0")}`;
-  }
-
-  function liveTimeText(game) {
-    if (!game || game.state !== "in") return "";
-
-    const status = String(game.statusText || "");
-    if (/half|intermission|delay|end of/i.test(status)) return status;
-    if (game.clock) {
-      const rawSeconds = clockSeconds(game.clock);
-      const elapsedSeconds = scoreboardUpdatedAt
-        ? Math.max(0, Math.floor((Date.now() - scoreboardUpdatedAt) / 1000))
-        : 0;
-      const currentSeconds = rawSeconds == null ? null : Math.max(0, rawSeconds - elapsedSeconds);
-      const period = game.period > 4 ? "OT" : game.period ? `Q${game.period}` : "";
-      const clock = currentSeconds == null ? game.clock : formatClock(currentSeconds);
-      return `${period ? `${period} ` : ""}${clock} left`;
-    }
-    return status || "In progress";
-  }
-
   function gameRecordDetail(pick, grade) {
     const game = grade.game;
     if (!game?.selectedAbbr) return pick.team ? pickLabel(pick) : pick.raw;
 
-    const gameTime = game.state === "post" ? "Final" : liveTimeText(game);
+    const gameState = game.state === "post" ? "Final" : game.state === "in" ? gameStatusText(game) : "";
     const atsText = grade.margin > 0
       ? `ATS UP ${formatMargin(grade.margin)}`
       : grade.margin < 0
         ? `ATS DOWN ${formatMargin(grade.margin)}`
         : "ATS PUSH 0";
-    return `${pickLabel(pick)} · Score ${game.selectedScore}–${game.opponentScore} · ${atsText}${gameTime ? ` · ${gameTime}` : ""}`;
+    return `${pickLabel(pick)} · Score ${game.selectedScore}–${game.opponentScore} · ${atsText}${gameState ? ` · ${gameState}` : ""}`;
   }
 
   function gameStatusText(game) {
     if (game?.state === "post") return "Final";
-    if (game?.period) {
-      const period = game.period > 4 ? "OT" : `Q${game.period}`;
-      return `${period}${game.clock ? ` ${game.clock}` : ""}`;
+    if (game?.state === "in") {
+      const status = String(game.statusText || "");
+      if (/half|intermission|delay|end of/i.test(status)) {
+        return status.replace(/\b\d{1,2}:\d{2}\b/g, "").replace(/\s+/g, " ").trim() || "In progress";
+      }
+      const clock = game.clock ? `${game.clock} left` : "";
+      if (game.period) {
+        const period = game.period > 4 ? "OT" : `Q${game.period}`;
+        return clock ? `${period} ${clock}` : period;
+      }
+      if (clock) return clock;
+      return "In progress";
     }
     return game?.statusText || "In progress";
   }
@@ -745,10 +703,9 @@
         const solidDetail = teams => teams.length
           ? teams.map(team => `<span class="entry-record-solid-detail">— ${escapeHtml(team)}</span>`).join("")
           : "";
-        const pendingDetails = pendingPicks.map(({ pick, grade }) => {
+        const pendingDetails = pendingPicks.map(({ pick }) => {
           const team = pick.team ? pickLabel(pick) : pick.raw;
-          const time = pendingTimeText(grade.game);
-          return time ? `${team} · ${time}` : team;
+          return team;
         });
         return `
           <article class="entry-record" role="listitem">
@@ -865,11 +822,6 @@
       console.error(error);
       setBanner("The dashboard could not render this score response. Your saved picks are safe.", "error");
     }
-  }
-
-  function refreshDisplayedTimes() {
-    if (!scoreboard || document.hidden) return;
-    safeRender();
   }
 
   function scheduleScoreRefresh() {
@@ -1047,7 +999,6 @@
   if (deepLinkState.presetLoaded) setSaveStatus("All-picks preset loaded from link", "success");
   else if (deepLinkState.playerSelected) setSaveStatus(`Viewing ${activePlayer().name}`, "success");
   refreshScores().finally(scheduleScoreRefresh);
-  window.setInterval(refreshDisplayedTimes, DISPLAY_REFRESH_MS);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       safeRender();

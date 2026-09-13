@@ -32,6 +32,7 @@
       statusName,
       startTime: event?.date || null,
       period: Number(status.period || statusType.period || 0) || null,
+      // Keep ESPN's clock as reported. The dashboard never decrements it locally.
       clock: status.displayClock || status.clock || null,
       isPostponed: statusName.includes("POSTPONED") || /postponed/i.test(statusText),
       isCanceled: statusName.includes("CANCEL") || /canceled|cancelled/i.test(statusText),

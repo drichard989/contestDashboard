@@ -8,7 +8,7 @@ Turn this starter into a polished personal live dashboard hosted at:
 
 The dashboard tracks manually entered Circa contest selections against live NFL scores.
 
-The dashboard includes player tabs for Michael-Daniel, Rob, Ken, and Ryan. Each player has independent entries, plus an all-picks view that lists every pick across that player's entries with its live status, per-entry W-L-T records, and a checked-in weekly preset.
+The dashboard includes player tabs for Michael-Daniel, Rob, Ken, Ryan, and Andy. Each player has independent entries, plus an all-picks view that lists every pick across that player's entries with its live status, per-entry W-L-T records, and a checked-in weekly preset.
 
 The most important rule:
 
@@ -100,7 +100,7 @@ Each entry should show:
 - `Team Spread` together, e.g. **Steelers -3½**
 - opponent
 - current score
-- quarter / clock or final
+- ESPN period/live clock or final
 - ATS state
 - ATS margin
 - summary counts for covering/winning, losing/losses, pushes, pending

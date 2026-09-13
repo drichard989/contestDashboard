@@ -11,18 +11,18 @@ Target hostname:
 - Static HTML/CSS/JavaScript only
 - No backend required for the initial version
 - Multiple contest entries
-- Player tabs for Michael-Daniel, Rob, Ken, and Ryan
+- Player tabs for Michael-Daniel, Rob, Ken, Ryan, and Andy
 - Independent saved picks for each player
 - An all-picks view showing each unique pick and the entries using it
 - An all-picks preset button for loading the checked-in weekly entries
 - Deep links to the all-picks preset for any player
-- Per-entry won/lost/tied records, with finished teams in the solid category color, live picks shown in parentheses, and pending teams with kickoff countdowns
+- Per-entry won/lost/tied records, with finished teams in the solid category color, live picks shown in parentheses, and pending teams listed by selection
 - Pick input such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
 - Live NFL scores
 - Automatic ATS calculation
 - Covering / losing / push / pending status
 - Margin against the contest line
-- Automatic score refresh every 10 seconds, with live clocks and kickoff countdowns redrawn each second between requests
+- Automatic score refresh every 10 seconds from ESPN; live clocks show ESPN's latest reported value without client-side interpolation, and there is no kickoff countdown
 - Desktop text starts larger, with saved A− / A+ size controls
 - Browser `localStorage` persistence
 - Responsive/mobile layout
@@ -153,6 +153,7 @@ Use these links to open the preset directly:
 - `?preset=all-picks&player=rob`
 - `?preset=all-picks&player=ken`
 - `?preset=all-picks&player=ryan`
+- `?preset=all-picks&player=andy`
 
 The `player` value can be either the configured ID or display name. A link with only `?player=rob` opens Rob's saved dashboard without replacing the entries.
 

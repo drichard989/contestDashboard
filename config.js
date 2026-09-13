@@ -36,7 +36,8 @@ window.CIRCA_CONFIG = {
     { id: "michael-daniel", name: "Michael-Daniel" },
     { id: "rob", name: "Rob" },
     { id: "ken", name: "Ken" },
-    { id: "ryan", name: "Ryan" }
+    { id: "ryan", name: "Ryan" },
+    { id: "andy", name: "Andy" }
   ],
 
   // Unofficial / unsupported ESPN endpoint. No API key is currently required.
