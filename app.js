@@ -737,7 +737,6 @@
   function renderDashboard() {
     const context = createGradeContext();
     const player = activePlayer();
-    updateActivePlayerLabels();
     const entries = (player?.entries || []).map(entry => ({
       name: entry.name,
       picks: entry.picks.map(parsePick).filter(Boolean)
