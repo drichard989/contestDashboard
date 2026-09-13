@@ -22,7 +22,7 @@ Target hostname:
 - Automatic ATS calculation
 - Covering / losing / push / pending status
 - Margin against the contest line
-- Automatic refresh every 10 seconds
+- Automatic score refresh every 10 seconds, with live clocks and kickoff countdowns redrawn each second between requests
 - Desktop text starts larger, with saved A− / A+ size controls
 - Browser `localStorage` persistence
 - Responsive/mobile layout

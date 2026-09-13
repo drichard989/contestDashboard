@@ -7,6 +7,8 @@
   const FONT_SCALE_LEVELS = [0.92, 1, 1.08, 1.16, 1.24, 1.32];
   const DEFAULT_FONT_SCALE = typeof window.matchMedia === "function" && window.matchMedia("(min-width: 761px)").matches ? 1.08 : 1;
   const DEFAULT_SEASON_TYPE = 2;
+  const SCORE_REFRESH_MS = Number(CFG.refreshMs) > 0 ? Number(CFG.refreshMs) : 10000;
+  const DISPLAY_REFRESH_MS = 1000;
   const FALLBACK_PLAYERS = [
     { id: "michael-daniel", name: "Michael-Daniel" },
     { id: "rob", name: "Rob" },
@@ -96,6 +98,7 @@
   let lastSuccessfulUpdate = null;
   let refreshTimer = null;
   let refreshInFlight = false;
+  let scoreboardUpdatedAt = 0;
   let fontScale = loadFontScale();
 
   function loadFontScale() {
@@ -422,6 +425,8 @@
     if (hasSeason || hasWeek || hasSeasonTypeOverride) {
       url.searchParams.set("seasontype", String(state.seasonType));
     }
+    // Prevent an intermediary cache from serving an older live scoreboard snapshot.
+    url.searchParams.set("_ts", String(Date.now()));
     return url.toString();
   }
 
@@ -454,7 +459,8 @@
         throw new Error("Score provider returned an invalid games list");
       }
       scoreboard = result;
-      lastSuccessfulUpdate = new Date();
+      scoreboardUpdatedAt = Date.now();
+      lastSuccessfulUpdate = new Date(scoreboardUpdatedAt);
       updateLastUpdated();
 
       if (!result.games.length) {
@@ -629,14 +635,31 @@
     return `starts in ${days}d${remainingHours ? ` ${remainingHours}h` : ""}`;
   }
 
+  function clockSeconds(value) {
+    const parts = String(value || "").trim().split(":").map(Number);
+    if (parts.length !== 2 || parts.some(part => !Number.isFinite(part))) return null;
+    return Math.max(0, parts[0] * 60 + parts[1]);
+  }
+
+  function formatClock(seconds) {
+    const wholeSeconds = Math.max(0, Math.ceil(Number(seconds) || 0));
+    return `${Math.floor(wholeSeconds / 60)}:${String(wholeSeconds % 60).padStart(2, "0")}`;
+  }
+
   function liveTimeText(game) {
     if (!game || game.state !== "in") return "";
 
     const status = String(game.statusText || "");
-    if (/half|intermission|delay/i.test(status)) return status;
+    if (/half|intermission|delay|end of/i.test(status)) return status;
     if (game.clock) {
+      const rawSeconds = clockSeconds(game.clock);
+      const elapsedSeconds = scoreboardUpdatedAt
+        ? Math.max(0, Math.floor((Date.now() - scoreboardUpdatedAt) / 1000))
+        : 0;
+      const currentSeconds = rawSeconds == null ? null : Math.max(0, rawSeconds - elapsedSeconds);
       const period = game.period > 4 ? "OT" : game.period ? `Q${game.period}` : "";
-      return `${period ? `${period} ` : ""}${game.clock} left`;
+      const clock = currentSeconds == null ? game.clock : formatClock(currentSeconds);
+      return `${period ? `${period} ` : ""}${clock} left`;
     }
     return status || "In progress";
   }
@@ -844,6 +867,18 @@
     }
   }
 
+  function refreshDisplayedTimes() {
+    if (!scoreboard || document.hidden) return;
+    safeRender();
+  }
+
+  function scheduleScoreRefresh() {
+    window.clearTimeout(refreshTimer);
+    refreshTimer = window.setTimeout(() => {
+      refreshScores().finally(scheduleScoreRefresh);
+    }, SCORE_REFRESH_MS);
+  }
+
   function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>"']/g, character => ({
       "&": "&amp;",
@@ -1011,11 +1046,14 @@
   safeRender();
   if (deepLinkState.presetLoaded) setSaveStatus("All-picks preset loaded from link", "success");
   else if (deepLinkState.playerSelected) setSaveStatus(`Viewing ${activePlayer().name}`, "success");
-  refreshScores();
-
-  const refreshMs = Number(CFG.refreshMs) > 0 ? Number(CFG.refreshMs) : 10000;
-  clearInterval(refreshTimer);
-  refreshTimer = window.setInterval(refreshScores, refreshMs);
+  refreshScores().finally(scheduleScoreRefresh);
+  window.setInterval(refreshDisplayedTimes, DISPLAY_REFRESH_MS);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      safeRender();
+      refreshScores();
+    }
+  });
 
   window.addEventListener("unhandledrejection", event => {
     console.error(event.reason);
