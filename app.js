@@ -291,8 +291,14 @@
     return `${value > 0 ? "+" : ""}${Number.isInteger(value) ? value : value.toFixed(1)}`;
   }
 
+  function shortTeamName(value) {
+    const fullName = typeof value === "string" ? value : value?.full || value?.name || "";
+    const words = String(fullName).trim().split(/\s+/).filter(Boolean);
+    return words[words.length - 1] || String(fullName).trim();
+  }
+
   function pickLabel(pick) {
-    return pick.error ? pick.raw : `${pick.team.full} ${formatSpread(pick.spread)}`;
+    return pick.error ? pick.raw : `${shortTeamName(pick.team)} ${formatSpread(pick.spread)}`;
   }
 
   function pickIdentity(pick) {
@@ -708,7 +714,7 @@
 
       const game = grade.game;
       const gameText = game?.selectedName
-        ? `${game.selectedName} vs ${game.opponentName}`
+        ? `${shortTeamName(game.selectedName)} vs ${shortTeamName(game.opponentName)}`
         : "Not found";
       return `
         <tr>
