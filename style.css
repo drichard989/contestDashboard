@@ -84,6 +84,14 @@ button:disabled { cursor: wait; opacity: .65; }
 .font-size-button:hover:not(:disabled) { background: rgba(255,255,255,.2); }
 .font-size-button:disabled { cursor: not-allowed; opacity: .45; }
 
+@media (min-width: 761px) {
+  .topbar { gap: 18px; padding-top: 16px; padding-bottom: 16px; }
+  .brand-lockup h1 { line-height: 1; }
+  .brand-lockup > p:last-child { margin-top: 2px; line-height: 1.2; }
+  .top-actions { gap: 10px; }
+  .top-actions > button { min-height: 38px; padding: 8px 12px; line-height: 1.15; }
+}
+
 .player-tabs {
   position: sticky;
   top: 0;
@@ -332,8 +340,10 @@ footer { max-width: 1220px; margin: 0 auto; padding: 0 18px 40px; color: var(--m
 }
 
 @media (max-width: 760px) {
-  .topbar { align-items: flex-start; flex-direction: column; padding: 24px 18px; }
-  .top-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+  .topbar { align-items: flex-start; flex-direction: column; gap: 14px; padding: 18px 18px; }
+  .brand-lockup h1 { line-height: 1; }
+  .brand-lockup > p:last-child { margin-top: 2px; line-height: 1.2; }
+  .top-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
   .last-updated { font-size: .77rem; }
   .section-head, .section-heading-row { flex-direction: column; gap: 10px; }
   .section-heading-row .muted { text-align: left; }
@@ -354,10 +364,12 @@ footer { max-width: 1220px; margin: 0 auto; padding: 0 18px 40px; color: var(--m
   .view-tabs-inner { padding: 0 12px; }
   .panel { padding: 15px; border-radius: 13px; }
   .entry-card-header, .entry-summary, .pick-row { padding-left: 13px; padding-right: 13px; }
-  .top-actions { align-items: flex-start; flex-direction: column; gap: 10px; }
-  .font-controls { width: 100%; justify-content: space-between; }
-  .font-size-button { flex: 1; }
-  .top-actions > button { width: 100%; }
+  .topbar { gap: 12px; padding: 16px 12px; }
+  .top-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+  .font-controls { grid-column: 1 / -1; width: auto; justify-content: flex-start; }
+  .font-size-button { flex: 0 0 auto; }
+  .last-updated { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .top-actions > button { width: auto; }
   .pick-row { gap: 8px; }
   .badge { font-size: .64rem; }
   footer { padding-left: 12px; padding-right: 12px; }
