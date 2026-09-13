@@ -392,6 +392,22 @@ footer { max-width: 1220px; margin: 0 auto; padding: 0 18px 40px; color: var(--m
   .entry-records { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 760px) {
+  .entry-record-detail,
+  .entry-record-solid-detail {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .entry-record-detail + .entry-record-detail,
+  .entry-record-solid-detail + .entry-record-solid-detail {
+    margin-top: 8px;
+  }
+}
+
 @media (max-width: 420px) {
   .entry-record-breakdown { grid-template-columns: 1fr; }
 }
