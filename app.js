@@ -764,7 +764,7 @@
         ${grades.length ? `
           <ul class="pick-list">
             ${grades.map(({ pick, grade }) => `
-              <li class="pick-row">
+              <li class="pick-row${grade.game?.state === "in" ? ` live ${grade.status}` : ""}">
                 <div class="pick-copy">
                   <div class="pick-main">${escapeHtml(pickLabel(pick))}</div>
                   <div class="pick-sub">${escapeHtml(scoreText(grade))}</div>
@@ -803,7 +803,7 @@
         ? `${shortTeamName(game.selectedName)} vs ${shortTeamName(game.opponentName)}`
         : "Not found";
       return `
-        <tr>
+        <tr class="${game?.state === "in" ? `live-row ${grade.status}` : ""}">
           <td>${escapeHtml(entryNames.join(", "))}</td>
           <td><strong>${escapeHtml(pickLabel(pick))}</strong></td>
           <td>${escapeHtml(gameText)}</td>
