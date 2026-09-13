@@ -13,13 +13,16 @@ Target hostname:
 - Multiple contest entries
 - Player tabs for Michael-Daniel, Rob, Ken, and Ryan
 - Independent saved picks for each player
-- An all-picks view showing every entry row and live ATS status
+- An all-picks view showing each unique pick and the entries using it
+- An all-picks preset button for loading the checked-in weekly entries
+- Deep links to the all-picks preset for any player
+- Per-entry won/lost/tied records, with live picks shown in the matching category's parentheses
 - Pick input such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
 - Live NFL scores
 - Automatic ATS calculation
 - Covering / losing / push / pending status
 - Margin against the contest line
-- Automatic refresh every 30 seconds
+- Automatic refresh every 10 seconds
 - Browser `localStorage` persistence
 - Responsive/mobile layout
 - `CNAME` preconfigured for `contestDashboard.danielrichard.com`
@@ -138,6 +141,19 @@ Bears PK
 - `CNAME` — GitHub Pages custom domain
 - `CODEX_HANDOFF.md` — requirements and recommended next steps for Codex
 - `TEST_PLAN.md` — manual acceptance checklist
+
+### Weekly preset and deep links
+
+Update `ALL_PICKS_PRESET` in `config.js` with the current week's two entries, then push the change. The **All-picks preset** button loads those entries for the active player.
+
+Use these links to open the preset directly:
+
+- `?preset=all-picks&player=michael-daniel`
+- `?preset=all-picks&player=rob`
+- `?preset=all-picks&player=ken`
+- `?preset=all-picks&player=ryan`
+
+The `player` value can be either the configured ID or display name. A link with only `?player=rob` opens Rob's saved dashboard without replacing the entries.
 
 ## Important limitations
 

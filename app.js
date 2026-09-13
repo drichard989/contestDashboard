@@ -71,6 +71,8 @@
     picksPlayerName: document.getElementById("picksPlayerName"),
     entryCards: document.getElementById("entryCards"),
     picksBody: document.getElementById("picksBody"),
+    entryRecords: document.getElementById("entryRecords"),
+    allPicksPresetBtn: document.getElementById("allPicksPresetBtn"),
     lastUpdated: document.getElementById("lastUpdated"),
     refreshBtn: document.getElementById("refreshBtn"),
     saveBtn: document.getElementById("saveBtn"),
@@ -128,6 +130,48 @@
   function normalizeEntries(entries) {
     const normalized = Array.isArray(entries) ? entries.map(normalizeEntry) : [];
     return normalized.length ? normalized : [{ name: "Entry 1", picks: [] }];
+  }
+
+  function allPicksPreset() {
+    return Array.isArray(CFG.allPicksPreset)
+      ? CFG.allPicksPreset.map(normalizeEntry)
+      : [];
+  }
+
+  function playerForDeepLink(value) {
+    const requested = normalize(value);
+    if (!requested) return null;
+    return state.players.find(player => (
+      player.id === value ||
+      normalize(player.id) === requested ||
+      normalize(player.name) === requested
+    )) || null;
+  }
+
+  function applyDeepLink() {
+    const params = new URLSearchParams(window.location.search);
+    const presetRequested = ["all-picks", "all-games"].includes(params.get("preset"));
+    const linkedPlayer = playerForDeepLink(params.get("player"));
+    if (!presetRequested && !linkedPlayer) {
+      return { playerSelected: false, presetLoaded: false };
+    }
+
+    const player = linkedPlayer || state.players[0];
+    if (!player) return { playerSelected: false, presetLoaded: false };
+    state.activePlayerId = player.id;
+
+    if (!presetRequested) {
+      saveState();
+      return { playerSelected: true, presetLoaded: false };
+    }
+
+    const preset = allPicksPreset();
+    if (!preset.length) return { playerSelected: true, presetLoaded: false };
+
+    player.entries = preset.map((entry, index) => normalizeEntry(entry, index));
+    state.activeView = "picks";
+    saveState();
+    return { playerSelected: true, presetLoaded: true };
   }
 
   function validSeason(value) {
@@ -249,6 +293,10 @@
 
   function pickLabel(pick) {
     return pick.error ? pick.raw : `${pick.team.full} ${formatSpread(pick.spread)}`;
+  }
+
+  function pickIdentity(pick) {
+    return pick.error ? `error:${pick.raw}` : `${pick.team.abbr}:${pick.spread}`;
   }
 
   function syncStateFromEditors() {
@@ -536,6 +584,51 @@
     return `${game.selectedAbbr} ${game.selectedScore} – ${game.opponentScore} ${game.opponentAbbr} · ${gameStatusText(game)}`;
   }
 
+  function renderEntryRecords(entryRows) {
+    if (!entryRows.length) {
+      els.entryRecords.innerHTML = `<p class="empty-records">Add a pick to see its current record.</p>`;
+      return;
+    }
+
+    els.entryRecords.innerHTML = entryRows.map(({ name, grades }) => {
+        const record = { wins: 0, losses: 0, ties: 0, pending: 0 };
+        const liveWinningPicks = [];
+        const liveLosingPicks = [];
+        const liveTiedPicks = [];
+        grades.forEach(({ pick, grade }) => {
+          if (grade.status === "cover") {
+            if (grade.game?.state === "post") record.wins += 1;
+            else liveWinningPicks.push(pickLabel(pick));
+          }
+          else if (grade.status === "lose") {
+            if (grade.game?.state === "post") record.losses += 1;
+            else liveLosingPicks.push(pickLabel(pick));
+          }
+          else if (grade.status === "push") {
+            if (grade.game?.state === "post") record.ties += 1;
+            else liveTiedPicks.push(pickLabel(pick));
+          }
+          else record.pending += 1;
+        });
+        const total = grades.length;
+        const liveDetail = picks => picks.length
+          ? ` <span class="entry-record-detail">(${escapeHtml(picks.join(", "))})</span>`
+          : "";
+        return `
+          <article class="entry-record" role="listitem">
+            <strong class="entry-record-name">${escapeHtml(name)}</strong>
+            <div class="entry-record-breakdown">
+              <span class="entry-record-status won"><strong>Won games ${record.wins}</strong>${liveDetail(liveWinningPicks)}</span>
+              <span class="entry-record-status lost"><strong>Lost games ${record.losses}</strong>${liveDetail(liveLosingPicks)}</span>
+              <span class="entry-record-status tied"><strong>Tied games ${record.ties}</strong>${liveDetail(liveTiedPicks)}</span>
+              <span class="entry-record-status pending"><strong>Pending ${record.pending}</strong></span>
+            </div>
+            <span class="entry-record-meta">${total} ${total === 1 ? "pick" : "picks"}</span>
+          </article>`;
+      })
+      .join("");
+  }
+
   function renderDashboard() {
     const context = createGradeContext();
     const player = activePlayer();
@@ -544,14 +637,21 @@
       name: entry.name,
       picks: entry.picks.map(parsePick).filter(Boolean)
     }));
-    const allPicks = [];
+    const uniquePicks = new Map();
+    const entryRows = [];
 
     els.entryCards.innerHTML = "";
     for (const entry of entries) {
       const grades = entry.picks.map(pick => ({ pick, grade: context.grade(pick) }));
       const counts = { cover: 0, lose: 0, push: 0, pending: 0 };
       grades.forEach(({ grade }) => counts[grade.status]++);
-      grades.forEach(({ pick, grade }) => allPicks.push({ entryName: entry.name, pick, grade }));
+      grades.forEach(({ pick, grade }) => {
+        const key = pickIdentity(pick);
+        if (!uniquePicks.has(key)) uniquePicks.set(key, { pick, grade, entryNames: [] });
+        const row = uniquePicks.get(key);
+        if (!row.entryNames.includes(entry.name)) row.entryNames.push(entry.name);
+      });
+      entryRows.push({ name: entry.name, grades });
 
       const card = document.createElement("article");
       card.className = "entry-card";
@@ -585,16 +685,19 @@
       els.entryCards.appendChild(card);
     }
 
-    if (!allPicks.length) {
+    renderEntryRecords(entryRows);
+
+    const rows = [...uniquePicks.values()];
+    if (!rows.length) {
       els.picksBody.innerHTML = `<tr><td colspan="6" class="empty-table">Add a pick above to see its live status here.</td></tr>`;
       return;
     }
 
-    els.picksBody.innerHTML = allPicks.map(({ entryName, pick, grade }) => {
+    els.picksBody.innerHTML = rows.map(({ entryNames, pick, grade }) => {
       if (pick.error) {
         return `
           <tr>
-            <td>${escapeHtml(entryName)}</td>
+            <td>${escapeHtml(entryNames.join(", "))}</td>
             <td><strong>${escapeHtml(pick.raw)}</strong></td>
             <td>—</td>
             <td>${escapeHtml(pick.error)}</td>
@@ -609,7 +712,7 @@
         : "Not found";
       return `
         <tr>
-          <td>${escapeHtml(entryName)}</td>
+          <td>${escapeHtml(entryNames.join(", "))}</td>
           <td><strong>${escapeHtml(pickLabel(pick))}</strong></td>
           <td>${escapeHtml(gameText)}</td>
           <td>${escapeHtml(scoreText(grade))}</td>
@@ -765,14 +868,35 @@
 
   els.refreshBtn.addEventListener("click", refreshScores);
 
+  els.allPicksPresetBtn.addEventListener("click", async () => {
+    const preset = allPicksPreset();
+    if (!preset.length) {
+      setSaveStatus("Preset unavailable", "error");
+      setBanner("No all-picks preset is configured yet.", "error");
+      return;
+    }
+
+    syncStateFromEditors();
+    const player = activePlayer();
+    player.entries = preset;
+    renderEditors();
+    const saved = saveState();
+    safeRender();
+    setSaveStatus(saved ? "All-picks preset loaded" : "Preset loaded for this session", saved ? "success" : "error");
+    await refreshScores();
+  });
+
+  const deepLinkState = applyDeepLink();
   renderPlayerTabs();
   renderViewTabs();
   renderEditors();
   updateLastUpdated();
   safeRender();
+  if (deepLinkState.presetLoaded) setSaveStatus("All-picks preset loaded from link", "success");
+  else if (deepLinkState.playerSelected) setSaveStatus(`Viewing ${activePlayer().name}`, "success");
   refreshScores();
 
-  const refreshMs = Number(CFG.refreshMs) > 0 ? Number(CFG.refreshMs) : 30000;
+  const refreshMs = Number(CFG.refreshMs) > 0 ? Number(CFG.refreshMs) : 10000;
   clearInterval(refreshTimer);
   refreshTimer = window.setInterval(refreshScores, refreshMs);
 

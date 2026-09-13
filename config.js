@@ -1,6 +1,29 @@
+const ALL_PICKS_PRESET = [
+  {
+    name: "Entry 1",
+    picks: [
+      "Vikings -1.5",
+      "Chargers -8.5",
+      "Bears -3",
+      "Eagles -4.5",
+      "Broncos +3"
+    ]
+  },
+  {
+    name: "Entry 2",
+    picks: [
+      "Bengals -3.5",
+      "Texans +0.5",
+      "Lions -7",
+      "Vikings -1.5",
+      "Bears -3"
+    ]
+  }
+];
+
 window.CIRCA_CONFIG = {
-  // Refresh live scores every 30 seconds.
-  refreshMs: 30000,
+  // Refresh live scores every 10 seconds.
+  refreshMs: 10000,
 
   // Keep provider-specific fetch and JSON normalization outside the dashboard UI.
   scoreProvider: "espn",
@@ -26,28 +49,8 @@ window.CIRCA_CONFIG = {
   defaultSeasonType: 2,
   defaultWeek: null,
 
-  // Preloaded examples based on the Week 1 picks discussed while this starter was created.
-  // The UI persists edits in localStorage.
-  starterEntries: [
-    {
-      name: "Entry 1",
-      picks: [
-        "Bears -3",
-        "Broncos +3",
-        "Steelers -3.5",
-        "Vikings -1.5",
-        "Lions -7"
-      ]
-    },
-    {
-      name: "Entry 2",
-      picks: [
-        "Texans +0.5",
-        "Lions -7",
-        "Vikings -1.5",
-        "Steelers -3.5",
-        "Broncos +3"
-      ]
-    }
-  ]
+  // Hard-code the current week's entries here, then push the change with the site.
+  // The button in All picks loads this same preset into the active player's card.
+  allPicksPreset: ALL_PICKS_PRESET,
+  starterEntries: ALL_PICKS_PRESET
 };

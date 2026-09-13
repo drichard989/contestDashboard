@@ -34,6 +34,19 @@ Verify an unknown team shows an input error without breaking other picks.
 4. Reload the browser.
 5. Confirm all entries and week settings remain.
 
+The All picks view should also have an **All-picks preset** button. Confirm it loads the two checked-in weekly entries for the active player and refreshes their live statuses.
+
+If the same pick appears in both entries, confirm All picks shows it once and lists both entries in the Entries column. Entry-level records should still count each entry's pick.
+
+## Refresh and entry records
+
+- Confirm the dashboard fetches scores on initial load and automatically every 10 seconds.
+- In All picks, confirm each entry has separate won, lost, tied, and pending counts.
+- Live covering/losing/push results should appear in parentheses beside the matching category; final covering/losing/push results should count as won/lost/tied games.
+- Open `?preset=all-picks` and confirm it selects All picks and loads the checked-in preset.
+- Open the preset link with `player=michael-daniel`, `player=rob`, `player=ken`, and `player=ryan`; confirm each selects the requested player and loads the preset.
+- Open a link with only `?player=rob`; confirm it selects Rob without replacing Rob's saved entries.
+
 ## ATS math
 
 Use browser dev tools or fixture data if Codex adds test fixtures.

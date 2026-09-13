@@ -39,7 +39,7 @@
             <p class="eyebrow">At a glance</p>
             <h2 id="entriesTitle">Your entries · <span id="activePlayerName">Michael-Daniel</span></h2>
           </div>
-          <p class="muted">Updates automatically every 30 seconds</p>
+          <p class="muted">Updates automatically every 10 seconds</p>
         </div>
         <div id="entryCards" class="entry-cards"></div>
       </section>
@@ -96,14 +96,27 @@
           <div>
             <p class="eyebrow">Live card view</p>
             <h2 id="picksTitle">All picks · <span id="picksPlayerName">Michael-Daniel</span></h2>
-            <p>Every pick across this player’s entries, including duplicates, with its live ATS status.</p>
+            <p>Each unique pick across this player’s entries, with its live ATS status and the entries using it.</p>
+          </div>
+          <div class="picks-actions">
+            <button id="allPicksPresetBtn" class="secondary" type="button" title="Load the checked-in weekly entries for this player">All-picks preset</button>
           </div>
         </div>
+        <section class="entry-record-panel" aria-labelledby="entryRecordsTitle">
+          <div class="entry-record-heading">
+            <p class="eyebrow">Current outlook</p>
+            <h3 id="entryRecordsTitle">Entry records</h3>
+            <p>Each entry shows completed won, lost, and tied games. Parentheses show live picks in each category.</p>
+          </div>
+          <div id="entryRecords" class="entry-records" role="list" aria-live="polite">
+            <p class="empty-records">Add a pick to see its current record.</p>
+          </div>
+        </section>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th scope="col">Entry</th>
+                <th scope="col">Entries</th>
                 <th scope="col">Pick</th>
                 <th scope="col">Game</th>
                 <th scope="col">Score / status</th>

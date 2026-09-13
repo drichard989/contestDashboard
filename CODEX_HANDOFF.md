@@ -8,7 +8,7 @@ Turn this starter into a polished personal live dashboard hosted at:
 
 The dashboard tracks manually entered Circa contest selections against live NFL scores.
 
-The dashboard includes player tabs for Michael-Daniel, Rob, Ken, and Ryan. Each player has independent entries, plus an all-picks view that lists every pick across that player's entries with its live status.
+The dashboard includes player tabs for Michael-Daniel, Rob, Ken, and Ryan. Each player has independent entries, plus an all-picks view that lists every pick across that player's entries with its live status, per-entry W-L-T records, and a checked-in weekly preset.
 
 The most important rule:
 
@@ -27,7 +27,7 @@ The included starter already supports:
 - team matching
 - ATS grading
 - live/pregame/final states
-- 30-second refresh
+- 10-second refresh
 - responsive layout
 - custom-domain CNAME
 
@@ -70,7 +70,7 @@ Requirements:
 
 - no API key
 - no paid service
-- refresh every ~30 seconds when page is open
+- refresh every ~10 seconds when page is open
 - manual refresh button
 - show last successful update
 - do not clear saved picks if score fetching fails
