@@ -609,6 +609,43 @@
     }).format(date);
   }
 
+  function pendingTimeText(game) {
+    if (!game) return "";
+    if (game.isCanceled || game.isPostponed) return game.statusText || "Unavailable";
+
+    const startTime = game.startTime ? new Date(game.startTime).getTime() : NaN;
+    if (!Number.isFinite(startTime)) return "";
+
+    const remainingMinutes = Math.ceil((startTime - Date.now()) / 60000);
+    if (remainingMinutes <= 0) return "starting soon";
+    if (remainingMinutes < 60) return `starts in ${remainingMinutes}m`;
+
+    const hours = Math.floor(remainingMinutes / 60);
+    const minutes = remainingMinutes % 60;
+    if (hours < 24) return `starts in ${hours}h${minutes ? ` ${minutes}m` : ""}`;
+
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return `starts in ${days}d${remainingHours ? ` ${remainingHours}h` : ""}`;
+  }
+
+  function liveTimeText(game) {
+    if (!game || game.state !== "in") return "";
+
+    const status = String(game.statusText || "");
+    if (/half|intermission|delay/i.test(status)) return status;
+    if (game.clock) {
+      const period = game.period > 4 ? "OT" : game.period ? `Q${game.period}` : "";
+      return `${period ? `${period} ` : ""}${game.clock} left`;
+    }
+    return status || "In progress";
+  }
+
+  function livePickDetail(pick, game) {
+    const time = liveTimeText(game);
+    return time ? `${pickLabel(pick)} · ${time}` : pickLabel(pick);
+  }
+
   function gameStatusText(game) {
     if (game?.state === "post") return "Final";
     if (game?.period) {
@@ -639,6 +676,7 @@
         const finishedWinningTeams = [];
         const finishedLosingTeams = [];
         const finishedTiedTeams = [];
+        const pendingPicks = [];
         const liveWinningPicks = [];
         const liveLosingPicks = [];
         const liveTiedPicks = [];
@@ -648,39 +686,47 @@
               record.wins += 1;
               finishedWinningTeams.push(shortTeamName(pick.team));
             }
-            else liveWinningPicks.push(pickLabel(pick));
+            else liveWinningPicks.push(livePickDetail(pick, grade.game));
           }
           else if (grade.status === "lose") {
             if (grade.game?.state === "post") {
               record.losses += 1;
               finishedLosingTeams.push(shortTeamName(pick.team));
             }
-            else liveLosingPicks.push(pickLabel(pick));
+            else liveLosingPicks.push(livePickDetail(pick, grade.game));
           }
           else if (grade.status === "push") {
             if (grade.game?.state === "post") {
               record.ties += 1;
               finishedTiedTeams.push(shortTeamName(pick.team));
             }
-            else liveTiedPicks.push(pickLabel(pick));
+            else liveTiedPicks.push(livePickDetail(pick, grade.game));
           }
-          else record.pending += 1;
+          else {
+            record.pending += 1;
+            pendingPicks.push({ pick, grade });
+          }
         });
         const total = grades.length;
         const liveDetail = picks => picks.length
           ? ` <span class="entry-record-detail">(${escapeHtml(picks.join(", "))})</span>`
           : "";
-        const finishedDetail = teams => teams.length
-          ? ` <span class="entry-record-finished">— ${escapeHtml(teams.join(", "))}</span>`
+        const solidDetail = teams => teams.length
+          ? ` <span class="entry-record-solid-detail">— ${escapeHtml(teams.join(", "))}</span>`
           : "";
+        const pendingDetails = pendingPicks.map(({ pick, grade }) => {
+          const team = pick.team ? shortTeamName(pick.team) : pick.raw;
+          const time = pendingTimeText(grade.game);
+          return time ? `${team} · ${time}` : team;
+        });
         return `
           <article class="entry-record" role="listitem">
             <strong class="entry-record-name">${escapeHtml(name)}</strong>
             <div class="entry-record-breakdown">
-              <span class="entry-record-status won"><strong>Won games ${record.wins}</strong>${finishedDetail(finishedWinningTeams)}${liveDetail(liveWinningPicks)}</span>
-              <span class="entry-record-status lost"><strong>Lost games ${record.losses}</strong>${finishedDetail(finishedLosingTeams)}${liveDetail(liveLosingPicks)}</span>
-              <span class="entry-record-status tied"><strong>Tied games ${record.ties}</strong>${finishedDetail(finishedTiedTeams)}${liveDetail(liveTiedPicks)}</span>
-              <span class="entry-record-status pending"><strong>Pending ${record.pending}</strong></span>
+              <span class="entry-record-status won"><strong>Won games ${record.wins}</strong>${solidDetail(finishedWinningTeams)}${liveDetail(liveWinningPicks)}</span>
+              <span class="entry-record-status lost"><strong>Lost games ${record.losses}</strong>${solidDetail(finishedLosingTeams)}${liveDetail(liveLosingPicks)}</span>
+              <span class="entry-record-status tied"><strong>Tied games ${record.ties}</strong>${solidDetail(finishedTiedTeams)}${liveDetail(liveTiedPicks)}</span>
+              <span class="entry-record-status pending"><strong>Pending ${record.pending}</strong>${solidDetail(pendingDetails)}</span>
             </div>
             <span class="entry-record-meta">${total} ${total === 1 ? "pick" : "picks"}</span>
           </article>`;
