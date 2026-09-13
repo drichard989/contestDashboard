@@ -19,6 +19,7 @@ Target hostname:
 - Per-entry won/lost/tied records, with finished teams in the solid category color, live picks shown in parentheses, and pending teams listed by selection
 - Configured pick strings such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
 - Live NFL scores
+- Live possession and down-and-distance when ESPN supplies the current game situation
 - YouTube TV search links for matched games, with Thursday games linked to Amazon for Prime
 - Automatic ATS calculation
 - Covering / losing / push / pending status

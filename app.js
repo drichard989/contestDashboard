@@ -638,20 +638,43 @@
     return `${pickLabel(pick)} · Score ${game.selectedScore}–${game.opponentScore} · ${atsText}${gameState ? ` · ${gameState}` : ""}`;
   }
 
+  function liveSituationText(game) {
+    if (game?.state !== "in") return "";
+
+    const situation = game.situation || {};
+    const possessionName = String(situation.possessionName || "").trim();
+    const knownTeam = aliasMap.get(normalize(possessionName));
+    const possession = situation.possessionAbbr || knownTeam
+      ? shortTeamName(knownTeam?.full || possessionName || situation.possessionAbbr)
+      : possessionName;
+    const downDistance = String(situation.downDistanceText || "").trim();
+
+    return [
+      possession ? `Ball: ${possession}` : "",
+      downDistance ? `Down: ${downDistance}` : ""
+    ].filter(Boolean).join(" · ");
+  }
+
   function gameStatusText(game) {
     if (game?.state === "post") return "Final";
     if (game?.state === "in") {
       const status = String(game.statusText || "");
+      let liveStatus;
       if (/half|intermission|delay|end of/i.test(status)) {
-        return status.replace(/\b\d{1,2}:\d{2}\b/g, "").replace(/\s+/g, " ").trim() || "In progress";
+        liveStatus = status.replace(/\b\d{1,2}:\d{2}\b/g, "").replace(/\s+/g, " ").trim() || "In progress";
+      } else {
+        const clock = game.clock ? `${game.clock} left` : "";
+        if (game.period) {
+          const period = game.period > 4 ? "OT" : `Q${game.period}`;
+          liveStatus = clock ? `${period} ${clock}` : period;
+        } else if (clock) {
+          liveStatus = clock;
+        } else {
+          liveStatus = "In progress";
+        }
       }
-      const clock = game.clock ? `${game.clock} left` : "";
-      if (game.period) {
-        const period = game.period > 4 ? "OT" : `Q${game.period}`;
-        return clock ? `${period} ${clock}` : period;
-      }
-      if (clock) return clock;
-      return "In progress";
+      const situation = liveSituationText(game);
+      return [liveStatus, situation].filter(Boolean).join(" · ");
     }
     return game?.statusText || "In progress";
   }
