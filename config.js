@@ -2,10 +2,10 @@ const ALL_PICKS_PRESET = [
   {
     name: "Entry 1",
     picks: [
+      "Texans +0.5",
+      "Lions -7",
       "Vikings -1.5",
-      "Chargers -8.5",
-      "Bears -3",
-      "Eagles -4.5",
+      "Steelers -3.5",
       "Broncos +3"
     ]
   },
