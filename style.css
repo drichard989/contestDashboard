@@ -276,6 +276,8 @@ label input, label select { display: block; margin-top: 5px; font-weight: 400; }
 .pick-sub { margin-top: 3px; color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; }
 .pick-margin { margin-top: 4px; color: var(--muted); font-size: .78rem; }
 .pick-margin strong { color: var(--ink); }
+.watch-link { display: flex; width: fit-content; margin-top: 8px; color: var(--blue); font-size: .78rem; font-weight: 850; line-height: 1.2; text-decoration: none; }
+.watch-link:hover { color: var(--navy); text-decoration: underline; }
 .empty-entry { margin: 0; padding: 18px 16px; color: var(--muted); font-size: .86rem; }
 
 .badge { display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; border-radius: 999px; font-size: .82rem; font-weight: 950; letter-spacing: .02em; line-height: 1.1; white-space: nowrap; }
@@ -358,6 +360,8 @@ footer { max-width: 1220px; margin: 0 auto; padding: 0 18px 40px; color: var(--m
     --shadow: none;
   }
   .secondary { color: var(--ink); }
+  .watch-link { color: #8ec5ff; }
+  .watch-link:hover { color: #c1e0ff; }
   .entry-editor { background: color-mix(in srgb, var(--panel) 90%, var(--blue-soft)); }
   .player-tab.active { color: var(--ink); }
   .view-tab.active { color: var(--ink); }

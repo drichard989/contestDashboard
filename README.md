@@ -19,6 +19,7 @@ Target hostname:
 - Per-entry won/lost/tied records, with finished teams in the solid category color, live picks shown in parentheses, and pending teams listed by selection
 - Configured pick strings such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
 - Live NFL scores
+- YouTube TV search links for matched games, with Thursday games linked to Amazon for Prime
 - Automatic ATS calculation
 - Covering / losing / push / pending status
 - Margin against the contest line
@@ -166,7 +167,8 @@ The `player` value can be either the configured ID or display name. A link with 
 3. This starter does not scrape the weekly Circa card.
 4. Contest lines are entered manually and intentionally never replaced by sportsbook market odds.
 5. The dashboard does not accept or persist hand-entered picks. Player tabs, the selected view, and text size are local display preferences only.
-6. The weekly entries are synced across devices by committing and pushing the checked-in configuration.
+6. Non-Thursday YouTube TV links open a matchup search; Thursday links open Amazon. Playback still depends on your location, subscription, and the service's available game listing.
+7. The weekly entries are synced across devices by committing and pushing the checked-in configuration.
 
 ## Recommended production hardening
 

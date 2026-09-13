@@ -325,6 +325,25 @@
     return pick.error ? `error:${pick.raw}` : `${pick.team.abbr}:${pick.spread}`;
   }
 
+  function isThursdayGame(game) {
+    const date = game?.startTime ? new Date(game.startTime) : null;
+    if (!date || Number.isNaN(date.getTime())) return false;
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      timeZone: "America/New_York"
+    }).format(date) === "Thu";
+  }
+
+  function watchLink(game) {
+    if (!game?.home?.name || !game?.away?.name) return "";
+    const matchupLabel = `${game.away.name} vs ${game.home.name}`;
+    const isPrimeGame = isThursdayGame(game);
+    const url = new URL(isPrimeGame ? "https://www.amazon.com/" : "https://tv.youtube.com/search");
+    if (!isPrimeGame) url.searchParams.set("q", `NFL ${matchupLabel}`);
+    const serviceLabel = isPrimeGame ? "Prime" : "YouTube TV";
+    return `<a class="watch-link" href="${escapeHtml(url.toString())}" target="_blank" rel="noopener noreferrer" aria-label="Watch ${escapeHtml(matchupLabel)} on ${serviceLabel}">Watch on ${serviceLabel}</a>`;
+  }
+
   function renderPlayerTabs() {
     els.playerTabs.innerHTML = state.players.map(player => `
       <button
@@ -763,6 +782,7 @@
                   <div class="pick-main">${escapeHtml(pickLabel(pick))}</div>
                   <div class="pick-sub">${escapeHtml(scoreText(grade))}</div>
                   ${grade.margin != null ? `<div class="pick-margin">ATS margin <strong>${escapeHtml(formatMargin(grade.margin))}</strong></div>` : ""}
+                  ${watchLink(grade.game)}
                 </div>
                 <span class="badge ${grade.status}" aria-label="${escapeHtml(grade.label)}">${escapeHtml(grade.label)}</span>
               </li>`).join("")}
@@ -800,7 +820,7 @@
         <tr class="${game?.state === "in" ? `live-row ${grade.status}` : ""}">
           <td>${escapeHtml(entryNames.join(", "))}</td>
           <td><strong>${escapeHtml(pickLabel(pick))}</strong></td>
-          <td>${escapeHtml(gameText)}</td>
+          <td>${escapeHtml(gameText)}${watchLink(game)}</td>
           <td>${escapeHtml(scoreText(grade))}</td>
           <td><span class="badge ${grade.status}">${escapeHtml(grade.label)}</span></td>
           <td>${escapeHtml(formatMargin(grade.margin))}</td>
