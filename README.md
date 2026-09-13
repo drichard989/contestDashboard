@@ -11,6 +11,9 @@ Target hostname:
 - Static HTML/CSS/JavaScript only
 - No backend required for the initial version
 - Multiple contest entries
+- Player tabs for Michael-Daniel, Rob, Ken, and Ryan
+- Independent saved picks for each player
+- An all-picks view showing every entry row and live ATS status
 - Pick input such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
 - Live NFL scores
 - Automatic ATS calculation
@@ -35,7 +38,7 @@ Optional query parameters commonly used by hobby projects include:
 
 This is **not an official supported public API contract**. It currently requires no key, but ESPN can change the endpoint, JSON shape, access policy, or CORS behavior at any time.
 
-The app therefore keeps all ESPN-specific parsing in `app.js` and the endpoint itself in `config.js`, so Codex can swap providers or add a lightweight proxy later.
+The app therefore keeps ESPN-specific parsing in `providers/espn.js` and the endpoint itself in `config.js`, so Codex can swap providers or add a lightweight proxy later.
 
 ## Quick local test
 
@@ -142,7 +145,7 @@ Bears PK
 2. Direct browser fetches depend on ESPN continuing to allow cross-origin requests.
 3. This starter does not scrape the weekly Circa card.
 4. Contest lines are entered manually and intentionally never replaced by sportsbook market odds.
-5. Browser storage is per-device/browser. Save picks after changing entries or scoreboard filters.
+5. Browser storage is per-device/browser. Save picks after changing entries or scoreboard filters. Player tabs and the selected view are saved too.
 6. If you want entries synced across devices later, add a backend or a shareable URL format.
 
 ## Recommended production hardening

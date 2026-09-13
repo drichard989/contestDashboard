@@ -63,11 +63,14 @@
   const els = {
     entryEditors: document.getElementById("entryEditors"),
     playerTabs: document.getElementById("playerTabs"),
+    viewTabs: document.getElementById("viewTabs"),
+    entriesView: document.getElementById("entriesView"),
+    picksView: document.getElementById("picksView"),
     activePlayerLabel: document.getElementById("activePlayerLabel"),
     activePlayerName: document.getElementById("activePlayerName"),
-    gamesPlayerName: document.getElementById("gamesPlayerName"),
+    picksPlayerName: document.getElementById("picksPlayerName"),
     entryCards: document.getElementById("entryCards"),
-    gamesBody: document.getElementById("gamesBody"),
+    picksBody: document.getElementById("picksBody"),
     lastUpdated: document.getElementById("lastUpdated"),
     refreshBtn: document.getElementById("refreshBtn"),
     saveBtn: document.getElementById("saveBtn"),
@@ -105,6 +108,7 @@
           : [{ name: "Entry 1", picks: [] }]
       })),
       activePlayerId: PLAYER_DEFINITIONS[0]?.id || "michael-daniel",
+      activeView: "entries",
       season: validSeason(CFG.defaultSeason),
       seasonType: validSeasonType(CFG.defaultSeasonType),
       week: validWeek(CFG.defaultWeek)
@@ -159,10 +163,14 @@
     const activePlayerId = players.some(player => player.id === value.activePlayerId)
       ? value.activePlayerId
       : players[0]?.id;
+    const activeView = ["entries", "picks"].includes(value.activeView)
+      ? value.activeView
+      : "entries";
 
     return {
       players,
       activePlayerId,
+      activeView,
       season: validSeason(value.season),
       seasonType: validSeasonType(value.seasonType),
       week: validWeek(value.week)
@@ -230,12 +238,7 @@
   function formatSpread(value) {
     const number = Object.is(value, -0) ? 0 : Number(value);
     if (number === 0) return "PK";
-
-    const sign = number > 0 ? "+" : "-";
-    const absolute = Math.abs(number);
-    const whole = Math.floor(absolute);
-    const hasHalf = Math.abs(absolute - whole - 0.5) < 0.001;
-    return `${sign}${whole || ""}${hasHalf ? "½" : ""}`;
+    return `${number > 0 ? "+" : ""}${Number.isInteger(number) ? number : number.toFixed(1)}`;
   }
 
   function formatMargin(value) {
@@ -269,7 +272,7 @@
     const name = player?.name || "Player";
     els.activePlayerLabel.textContent = name;
     els.activePlayerName.textContent = name;
-    els.gamesPlayerName.textContent = name;
+    els.picksPlayerName.textContent = name;
   }
 
   function renderPlayerTabs() {
@@ -289,6 +292,27 @@
     updateActivePlayerLabels();
   }
 
+  function renderViewTabs() {
+    const views = [
+      ["entries", "Entries"],
+      ["picks", "All picks"]
+    ];
+    els.viewTabs.innerHTML = views.map(([id, label]) => `
+      <button
+        class="view-tab${state.activeView === id ? " active" : ""}"
+        type="button"
+        role="tab"
+        data-view="${id}"
+        aria-selected="${state.activeView === id}"
+        aria-controls="${id}View"
+        tabindex="${state.activeView === id ? "0" : "-1"}">
+        ${label}
+      </button>
+    `).join("");
+    els.entriesView.classList.toggle("hidden", state.activeView !== "entries");
+    els.picksView.classList.toggle("hidden", state.activeView !== "picks");
+  }
+
   function renderEditors() {
     els.entryEditors.innerHTML = "";
     const player = activePlayer();
@@ -300,12 +324,12 @@
       wrap.innerHTML = `
         <div class="editor-head">
           <label class="editor-name-label" for="entry-name-${index}">Entry name</label>
-          <button class="danger remove-entry" data-entry="${index}" type="button" ${state.entries.length === 1 ? "disabled" : ""}>Remove</button>
+          <button class="danger remove-entry" data-entry="${index}" type="button" ${entries.length === 1 ? "disabled" : ""}>Remove</button>
         </div>
         <input id="entry-name-${index}" class="entry-name" data-entry="${index}" value="${escapeHtml(entry.name)}" aria-label="Entry ${index + 1} name">
         <label class="editor-picks-label" for="entry-picks-${index}">Picks</label>
         <textarea id="entry-picks-${index}" data-entry="${index}" class="entry-picks" spellcheck="false" aria-label="Picks for ${escapeHtml(entry.name)}" placeholder="Bears -3\nBroncos +3">${escapeHtml(entry.picks.join("\n"))}</textarea>
-        <p class="editor-hint">Team + line, one per line</p>
+        <p class="editor-hint">Team + line, e.g. Bears -3.5 or Bears -3½</p>
       `;
       els.entryEditors.appendChild(wrap);
     });
@@ -512,10 +536,6 @@
     return `${game.selectedAbbr} ${game.selectedScore} – ${game.opponentScore} ${game.opponentAbbr} · ${gameStatusText(game)}`;
   }
 
-  function pickIdentity(pick) {
-    return pick.error ? `error:${pick.raw}` : `${pick.team.abbr}:${pick.spread}`;
-  }
-
   function renderDashboard() {
     const context = createGradeContext();
     const player = activePlayer();
@@ -524,20 +544,14 @@
       name: entry.name,
       picks: entry.picks.map(parsePick).filter(Boolean)
     }));
-    const uniqueRows = new Map();
+    const allPicks = [];
 
     els.entryCards.innerHTML = "";
     for (const entry of entries) {
       const grades = entry.picks.map(pick => ({ pick, grade: context.grade(pick) }));
       const counts = { cover: 0, lose: 0, push: 0, pending: 0 };
       grades.forEach(({ grade }) => counts[grade.status]++);
-
-      grades.forEach(({ pick, grade }) => {
-        const key = pickIdentity(pick);
-        if (!uniqueRows.has(key)) uniqueRows.set(key, { pick, grade, entryNames: [] });
-        const row = uniqueRows.get(key);
-        if (!row.entryNames.includes(entry.name)) row.entryNames.push(entry.name);
-      });
+      grades.forEach(({ pick, grade }) => allPicks.push({ entryName: entry.name, pick, grade }));
 
       const card = document.createElement("article");
       card.className = "entry-card";
@@ -571,22 +585,21 @@
       els.entryCards.appendChild(card);
     }
 
-    const rows = [...uniqueRows.values()];
-    if (!rows.length) {
-      els.gamesBody.innerHTML = `<tr><td colspan="6" class="empty-table">Add a pick above to see its game here.</td></tr>`;
+    if (!allPicks.length) {
+      els.picksBody.innerHTML = `<tr><td colspan="6" class="empty-table">Add a pick above to see its live status here.</td></tr>`;
       return;
     }
 
-    els.gamesBody.innerHTML = rows.map(({ pick, grade, entryNames }) => {
+    els.picksBody.innerHTML = allPicks.map(({ entryName, pick, grade }) => {
       if (pick.error) {
         return `
           <tr>
+            <td>${escapeHtml(entryName)}</td>
             <td><strong>${escapeHtml(pick.raw)}</strong></td>
             <td>—</td>
             <td>${escapeHtml(pick.error)}</td>
             <td><span class="badge pending">INPUT ERROR</span></td>
             <td>—</td>
-            <td>${escapeHtml(entryNames.join(", "))}</td>
           </tr>`;
       }
 
@@ -596,12 +609,12 @@
         : "Not found";
       return `
         <tr>
+          <td>${escapeHtml(entryName)}</td>
           <td><strong>${escapeHtml(pickLabel(pick))}</strong></td>
           <td>${escapeHtml(gameText)}</td>
           <td>${escapeHtml(scoreText(grade))}</td>
           <td><span class="badge ${grade.status}">${escapeHtml(grade.label)}</span></td>
           <td>${escapeHtml(formatMargin(grade.margin))}</td>
-          <td>${escapeHtml(entryNames.join(", "))}</td>
         </tr>`;
     }).join("");
   }
@@ -625,10 +638,88 @@
     })[character]);
   }
 
+  function selectPlayer(playerId, shouldFocus = false) {
+    const player = state.players.find(item => item.id === playerId);
+    if (!player) return;
+
+    if (player.id === state.activePlayerId) {
+      if (shouldFocus) document.getElementById(`player-tab-${player.id}`)?.focus();
+      return;
+    }
+
+    // Preserve any in-progress edits before moving to another player's tab.
+    syncStateFromEditors();
+    state.activePlayerId = player.id;
+    const saved = saveState();
+    renderPlayerTabs();
+    renderEditors();
+    safeRender();
+    setSaveStatus(saved ? `Viewing ${player.name}` : "Could not save", saved ? "success" : "error");
+    if (shouldFocus) document.getElementById(`player-tab-${player.id}`)?.focus();
+  }
+
+  function selectView(viewId, shouldFocus = false) {
+    if (!["entries", "picks"].includes(viewId)) return;
+    if (viewId === state.activeView) {
+      if (shouldFocus) document.querySelector(`[data-view="${viewId}"]`)?.focus();
+      return;
+    }
+
+    syncStateFromEditors();
+    state.activeView = viewId;
+    const saved = saveState();
+    renderViewTabs();
+    safeRender();
+    setSaveStatus(saved ? (viewId === "picks" ? "Showing all picks" : "Showing entries") : "Could not save", saved ? "success" : "error");
+    if (shouldFocus) document.querySelector(`[data-view="${viewId}"]`)?.focus();
+  }
+
+  els.playerTabs.addEventListener("click", event => {
+    const button = event.target.closest("[role=tab]");
+    if (button) selectPlayer(button.dataset.player);
+  });
+
+  els.playerTabs.addEventListener("keydown", event => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const buttons = [...els.playerTabs.querySelectorAll("[role=tab]")];
+    const currentIndex = buttons.findIndex(button => button.dataset.player === state.activePlayerId);
+    if (currentIndex < 0) return;
+
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % buttons.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = buttons.length - 1;
+    event.preventDefault();
+    selectPlayer(buttons[nextIndex].dataset.player, true);
+  });
+
+  els.viewTabs.addEventListener("click", event => {
+    const button = event.target.closest("[role=tab]");
+    if (button) selectView(button.dataset.view);
+  });
+
+  els.viewTabs.addEventListener("keydown", event => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const buttons = [...els.viewTabs.querySelectorAll("[role=tab]")];
+    const currentIndex = buttons.findIndex(button => button.dataset.view === state.activeView);
+    if (currentIndex < 0) return;
+
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % buttons.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = buttons.length - 1;
+    event.preventDefault();
+    selectView(buttons[nextIndex].dataset.view, true);
+  });
+
   els.addEntryBtn.addEventListener("click", () => {
     syncStateFromEditors();
-    state.entries.push({ name: `Entry ${state.entries.length + 1}`, picks: [] });
+    const player = activePlayer();
+    player.entries.push({ name: `Entry ${player.entries.length + 1}`, picks: [] });
     renderEditors();
+    safeRender();
     setSaveStatus("Unsaved changes", "pending");
   });
 
@@ -636,7 +727,7 @@
     const button = event.target.closest(".remove-entry");
     if (!button || button.disabled) return;
     syncStateFromEditors();
-    state.entries.splice(Number(button.dataset.entry), 1);
+    activePlayer().entries.splice(Number(button.dataset.entry), 1);
     renderEditors();
     safeRender();
     setSaveStatus("Unsaved changes", "pending");
@@ -674,6 +765,8 @@
 
   els.refreshBtn.addEventListener("click", refreshScores);
 
+  renderPlayerTabs();
+  renderViewTabs();
   renderEditors();
   updateLastUpdated();
   safeRender();

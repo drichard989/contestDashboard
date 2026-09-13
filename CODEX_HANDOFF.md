@@ -8,6 +8,8 @@ Turn this starter into a polished personal live dashboard hosted at:
 
 The dashboard tracks manually entered Circa contest selections against live NFL scores.
 
+The dashboard includes player tabs for Michael-Daniel, Rob, Ken, and Ryan. Each player has independent entries, plus an all-picks view that lists every pick across that player's entries with its live status.
+
 The most important rule:
 
 > The user's entered Circa line is authoritative. Never substitute the current sportsbook spread.

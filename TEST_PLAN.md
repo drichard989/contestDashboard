@@ -19,6 +19,7 @@ Verify each is accepted:
 - `CHI -3`
 - `Texans +0.5`
 - `Texans +½`
+- `Steelers -3.5`
 - `Steelers -3½`
 - `Broncos +3`
 - `Bears PK`

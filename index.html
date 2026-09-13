@@ -25,91 +25,99 @@
     <div id="playerTabs" class="player-tabs-inner" role="tablist" aria-label="Choose a player"></div>
   </nav>
 
+  <nav class="view-tabs" aria-label="Dashboard view">
+    <div id="viewTabs" class="view-tabs-inner" role="tablist" aria-label="Choose a dashboard view"></div>
+  </nav>
+
   <main id="dashboardContent">
-    <section class="panel setup" aria-labelledby="setupTitle">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Your card</p>
-          <h2 id="setupTitle">Enter your Circa picks</h2>
-          <p>Editing <strong id="activePlayerLabel">Michael-Daniel</strong>. One pick per line.</p>
-        </div>
-        <span class="contest-line-note">Example: <code>Bears -3</code></span>
-      </div>
-
-      <div id="entryEditors" class="entry-editors"></div>
-
-      <div class="setup-actions">
-        <button id="addEntryBtn" class="secondary" type="button">+ Add entry</button>
-        <span id="saveStatus" class="save-status" role="status" aria-live="polite"></span>
-        <button id="saveBtn" type="button">Save picks</button>
-      </div>
-
-      <details class="advanced" open>
-        <summary>Scoreboard filters</summary>
-        <div class="advanced-grid">
-          <label>
-            Season <span class="label-hint">optional</span>
-            <input id="seasonInput" type="number" inputmode="numeric" min="2020" max="2100" placeholder="Auto" aria-describedby="filterHelp" />
-          </label>
-          <label>
-            Season type
-            <select id="seasonTypeInput" aria-describedby="filterHelp">
-              <option value="1">Preseason</option>
-              <option value="2" selected>Regular season</option>
-              <option value="3">Postseason</option>
-            </select>
-          </label>
-          <label>
-            Week <span class="label-hint">optional</span>
-            <input id="weekInput" type="number" inputmode="numeric" min="1" max="22" placeholder="Auto" aria-describedby="filterHelp" />
-          </label>
-        </div>
-        <div class="advanced-footer">
-          <p id="filterHelp" class="muted">Leave season and week blank to use the current NFL scoreboard. Save after changing filters.</p>
-          <button id="clearFiltersBtn" class="text-button" type="button">Use current scoreboard</button>
-        </div>
-      </details>
-    </section>
-
     <section id="statusBanner" class="status-banner hidden" role="status" aria-live="polite"></section>
 
-    <section aria-labelledby="entriesTitle">
-      <div class="section-heading-row">
-        <div>
-          <p class="eyebrow">At a glance</p>
-          <h2 id="entriesTitle">Your entries · <span id="activePlayerName">Michael-Daniel</span></h2>
+    <div id="entriesView" class="view-panel">
+      <section aria-labelledby="entriesTitle">
+        <div class="section-heading-row">
+          <div>
+            <p class="eyebrow">At a glance</p>
+            <h2 id="entriesTitle">Your entries · <span id="activePlayerName">Michael-Daniel</span></h2>
+          </div>
+          <p class="muted">Updates automatically every 30 seconds</p>
         </div>
-        <p class="muted">Updates automatically every 30 seconds</p>
-      </div>
-      <div id="entryCards" class="entry-cards"></div>
-    </section>
+        <div id="entryCards" class="entry-cards"></div>
+      </section>
 
-    <section class="panel games-panel" aria-labelledby="gamesTitle">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Shared game view</p>
-          <h2 id="gamesTitle">All selected games · <span id="gamesPlayerName">Michael-Daniel</span></h2>
-          <p>Duplicate picks are shown once and reused across every entry.</p>
+      <section class="panel setup" aria-labelledby="setupTitle">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Your card</p>
+            <h2 id="setupTitle">Enter your Circa picks</h2>
+            <p>Editing <strong id="activePlayerLabel">Michael-Daniel</strong>. One pick per line; your entered line is always used.</p>
+          </div>
+          <span class="contest-line-note">Examples: <code>Bears -3</code> <code>Steelers -3.5</code></span>
         </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Pick</th>
-              <th scope="col">Game</th>
-              <th scope="col">Score / status</th>
-              <th scope="col">ATS</th>
-              <th scope="col">Margin vs line</th>
-              <th scope="col">Used in</th>
-            </tr>
-          </thead>
-          <tbody id="gamesBody">
-            <tr><td colspan="6" class="empty-table">Add a pick above to see its game here.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+
+        <div id="entryEditors" class="entry-editors"></div>
+
+        <div class="setup-actions">
+          <button id="addEntryBtn" class="secondary" type="button">+ Add entry</button>
+          <span id="saveStatus" class="save-status" role="status" aria-live="polite"></span>
+          <button id="saveBtn" type="button">Save picks</button>
+        </div>
+
+        <details class="advanced" open>
+          <summary>Scoreboard filters</summary>
+          <div class="advanced-grid">
+            <label>
+              Season <span class="label-hint">optional</span>
+              <input id="seasonInput" type="number" inputmode="numeric" min="2020" max="2100" placeholder="Auto" aria-describedby="filterHelp" />
+            </label>
+            <label>
+              Season type
+              <select id="seasonTypeInput" aria-describedby="filterHelp">
+                <option value="1">Preseason</option>
+                <option value="2" selected>Regular season</option>
+                <option value="3">Postseason</option>
+              </select>
+            </label>
+            <label>
+              Week <span class="label-hint">optional</span>
+              <input id="weekInput" type="number" inputmode="numeric" min="1" max="22" placeholder="Auto" aria-describedby="filterHelp" />
+            </label>
+          </div>
+          <div class="advanced-footer">
+            <p id="filterHelp" class="muted">Leave season and week blank to use the current NFL scoreboard. Save after changing filters.</p>
+            <button id="clearFiltersBtn" class="text-button" type="button">Use current scoreboard</button>
+          </div>
+        </details>
+      </section>
+    </div>
+
+    <div id="picksView" class="view-panel hidden">
+      <section class="panel picks-panel" aria-labelledby="picksTitle">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Live card view</p>
+            <h2 id="picksTitle">All picks · <span id="picksPlayerName">Michael-Daniel</span></h2>
+            <p>Every pick across this player’s entries, including duplicates, with its live ATS status.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Entry</th>
+                <th scope="col">Pick</th>
+                <th scope="col">Game</th>
+                <th scope="col">Score / status</th>
+                <th scope="col">ATS</th>
+                <th scope="col">Margin vs line</th>
+              </tr>
+            </thead>
+            <tbody id="picksBody">
+              <tr><td colspan="6" class="empty-table">Add a pick above to see its live status here.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
   </main>
 
   <footer>
