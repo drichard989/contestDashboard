@@ -286,6 +286,7 @@ label input, label select { display: block; margin-top: 5px; font-weight: 400; }
 .entry-record-breakdown > span { overflow-wrap: anywhere; }
 .entry-record-breakdown strong { color: var(--ink); font-size: .94rem; }
 .entry-record-detail { display: inline; margin-left: 3px; padding: 3px 7px; border-radius: 5px; color: var(--muted); font-size: .86rem; font-weight: 750; letter-spacing: 0; line-height: 1.4; }
+.entry-record-finished { display: inline; margin-left: 3px; font-size: .86rem; font-weight: 850; letter-spacing: 0; }
 .entry-record-status.won, .entry-record-status.won strong, .entry-record-status.won .entry-record-detail { color: var(--green); }
 .entry-record-status.lost, .entry-record-status.lost strong, .entry-record-status.lost .entry-record-detail { color: var(--red); }
 .entry-record-status.tied, .entry-record-status.tied strong, .entry-record-status.tied .entry-record-detail { color: var(--yellow); }

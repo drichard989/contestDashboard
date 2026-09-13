@@ -636,20 +636,32 @@
 
     els.entryRecords.innerHTML = entryRows.map(({ name, grades }) => {
         const record = { wins: 0, losses: 0, ties: 0, pending: 0 };
+        const finishedWinningTeams = [];
+        const finishedLosingTeams = [];
+        const finishedTiedTeams = [];
         const liveWinningPicks = [];
         const liveLosingPicks = [];
         const liveTiedPicks = [];
         grades.forEach(({ pick, grade }) => {
           if (grade.status === "cover") {
-            if (grade.game?.state === "post") record.wins += 1;
+            if (grade.game?.state === "post") {
+              record.wins += 1;
+              finishedWinningTeams.push(shortTeamName(pick.team));
+            }
             else liveWinningPicks.push(pickLabel(pick));
           }
           else if (grade.status === "lose") {
-            if (grade.game?.state === "post") record.losses += 1;
+            if (grade.game?.state === "post") {
+              record.losses += 1;
+              finishedLosingTeams.push(shortTeamName(pick.team));
+            }
             else liveLosingPicks.push(pickLabel(pick));
           }
           else if (grade.status === "push") {
-            if (grade.game?.state === "post") record.ties += 1;
+            if (grade.game?.state === "post") {
+              record.ties += 1;
+              finishedTiedTeams.push(shortTeamName(pick.team));
+            }
             else liveTiedPicks.push(pickLabel(pick));
           }
           else record.pending += 1;
@@ -658,13 +670,16 @@
         const liveDetail = picks => picks.length
           ? ` <span class="entry-record-detail">(${escapeHtml(picks.join(", "))})</span>`
           : "";
+        const finishedDetail = teams => teams.length
+          ? ` <span class="entry-record-finished">— ${escapeHtml(teams.join(", "))}</span>`
+          : "";
         return `
           <article class="entry-record" role="listitem">
             <strong class="entry-record-name">${escapeHtml(name)}</strong>
             <div class="entry-record-breakdown">
-              <span class="entry-record-status won"><strong>Won games ${record.wins}</strong>${liveDetail(liveWinningPicks)}</span>
-              <span class="entry-record-status lost"><strong>Lost games ${record.losses}</strong>${liveDetail(liveLosingPicks)}</span>
-              <span class="entry-record-status tied"><strong>Tied games ${record.ties}</strong>${liveDetail(liveTiedPicks)}</span>
+              <span class="entry-record-status won"><strong>Won games ${record.wins}</strong>${finishedDetail(finishedWinningTeams)}${liveDetail(liveWinningPicks)}</span>
+              <span class="entry-record-status lost"><strong>Lost games ${record.losses}</strong>${finishedDetail(finishedLosingTeams)}${liveDetail(liveLosingPicks)}</span>
+              <span class="entry-record-status tied"><strong>Tied games ${record.ties}</strong>${finishedDetail(finishedTiedTeams)}${liveDetail(liveTiedPicks)}</span>
               <span class="entry-record-status pending"><strong>Pending ${record.pending}</strong></span>
             </div>
             <span class="entry-record-meta">${total} ${total === 1 ? "pick" : "picks"}</span>

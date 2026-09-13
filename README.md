@@ -16,7 +16,7 @@ Target hostname:
 - An all-picks view showing each unique pick and the entries using it
 - An all-picks preset button for loading the checked-in weekly entries
 - Deep links to the all-picks preset for any player
-- Per-entry won/lost/tied records, with live picks shown in the matching category's parentheses
+- Per-entry won/lost/tied records, with finished teams in the solid category color and live picks shown in the matching category's parentheses
 - Pick input such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
 - Live NFL scores
 - Automatic ATS calculation
