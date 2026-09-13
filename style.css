@@ -317,6 +317,33 @@ footer p { margin: 0; }
 }
 
 @media (max-width: 760px) {
+  .table-wrap { overflow-x: visible; }
+  table { min-width: 0; table-layout: fixed; }
+  thead { display: none; }
+  tbody, tbody tr, tbody td { display: block; width: 100%; }
+  tbody tr { padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  tbody tr:last-child { border-bottom: 0; }
+  tbody td { padding: 6px 0; border-bottom: 0; white-space: normal; overflow-wrap: anywhere; }
+  tbody td::before {
+    display: inline-block;
+    min-width: 94px;
+    margin-right: 8px;
+    color: var(--muted);
+    font-size: .64rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    vertical-align: top;
+  }
+  tbody td:nth-child(1)::before { content: "Entries"; }
+  tbody td:nth-child(2)::before { content: "Pick"; }
+  tbody td:nth-child(3)::before { content: "Game"; }
+  tbody td:nth-child(4)::before { content: "Score / status"; }
+  tbody td:nth-child(5)::before { content: "ATS"; }
+  tbody td:nth-child(6)::before { content: "Margin vs line"; }
+  tbody td.empty-table::before { display: none; }
+  tbody td .watch-link { margin-top: 4px; }
   .last-updated { min-width: 0; flex: 1 1 auto; overflow: hidden; font-size: .68rem; text-overflow: ellipsis; }
   .font-controls { gap: 4px; }
   .font-size-value { font-size: .65rem; }
