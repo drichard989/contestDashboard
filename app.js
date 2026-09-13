@@ -73,7 +73,6 @@
     picksView: document.getElementById("picksView"),
     entryCards: document.getElementById("entryCards"),
     picksBody: document.getElementById("picksBody"),
-    entryRecords: document.getElementById("entryRecords"),
     decreaseFontBtn: document.getElementById("decreaseFontBtn"),
     increaseFontBtn: document.getElementById("increaseFontBtn"),
     fontSizeValue: document.getElementById("fontSizeValue"),
@@ -625,19 +624,6 @@
     }).format(date);
   }
 
-  function gameRecordDetail(pick, grade) {
-    const game = grade.game;
-    if (!game?.selectedAbbr) return pick.team ? pickLabel(pick) : pick.raw;
-
-    const gameState = game.state === "post" ? "Final" : game.state === "in" ? gameStatusText(game) : "";
-    const atsText = grade.margin > 0
-      ? `ATS UP ${formatMargin(grade.margin)}`
-      : grade.margin < 0
-        ? `ATS DOWN ${formatMargin(grade.margin)}`
-        : "ATS PUSH 0";
-    return `${pickLabel(pick)} · Score ${game.selectedScore}–${game.opponentScore} · ${atsText}${gameState ? ` · ${gameState}` : ""}`;
-  }
-
   function liveSituationText(game) {
     if (game?.state !== "in") return "";
 
@@ -689,74 +675,6 @@
     return `${game.selectedAbbr} ${game.selectedScore} – ${game.opponentScore} ${game.opponentAbbr} · ${gameStatusText(game)}`;
   }
 
-  function renderEntryRecords(entryRows) {
-    if (!entryRows.length) {
-      els.entryRecords.innerHTML = `<p class="empty-records">No picks are configured for this player.</p>`;
-      return;
-    }
-
-    els.entryRecords.innerHTML = entryRows.map(({ name, grades }) => {
-        const record = { wins: 0, losses: 0, ties: 0, pending: 0 };
-        const finishedWinningTeams = [];
-        const finishedLosingTeams = [];
-        const finishedTiedTeams = [];
-        const pendingPicks = [];
-        const liveWinningPicks = [];
-        const liveLosingPicks = [];
-        const liveTiedPicks = [];
-        grades.forEach(({ pick, grade }) => {
-          if (grade.status === "cover") {
-            if (grade.game?.state === "post") {
-              record.wins += 1;
-              finishedWinningTeams.push(gameRecordDetail(pick, grade));
-            }
-            else liveWinningPicks.push(gameRecordDetail(pick, grade));
-          }
-          else if (grade.status === "lose") {
-            if (grade.game?.state === "post") {
-              record.losses += 1;
-              finishedLosingTeams.push(gameRecordDetail(pick, grade));
-            }
-            else liveLosingPicks.push(gameRecordDetail(pick, grade));
-          }
-          else if (grade.status === "push") {
-            if (grade.game?.state === "post") {
-              record.ties += 1;
-              finishedTiedTeams.push(gameRecordDetail(pick, grade));
-            }
-            else liveTiedPicks.push(gameRecordDetail(pick, grade));
-          }
-          else {
-            record.pending += 1;
-            pendingPicks.push({ pick, grade });
-          }
-        });
-        const total = grades.length;
-        const liveDetail = picks => picks.length
-          ? picks.map(pick => `<span class="entry-record-detail">(${escapeHtml(pick)})</span>`).join("")
-          : "";
-        const solidDetail = teams => teams.length
-          ? teams.map(team => `<span class="entry-record-solid-detail">— ${escapeHtml(team)}</span>`).join("")
-          : "";
-        const pendingDetails = pendingPicks.map(({ pick }) => {
-          const team = pick.team ? pickLabel(pick) : pick.raw;
-          return team;
-        });
-        return `
-          <article class="entry-record" role="listitem">
-            <strong class="entry-record-name">${escapeHtml(name)}</strong>
-            <div class="entry-record-breakdown">
-              <span class="entry-record-status won"><strong>Won games ${record.wins}</strong>${solidDetail(finishedWinningTeams)}${liveDetail(liveWinningPicks)}</span>
-              <span class="entry-record-status lost"><strong>Lost games ${record.losses}</strong>${solidDetail(finishedLosingTeams)}${liveDetail(liveLosingPicks)}</span>
-              <span class="entry-record-status tied"><strong>Tied games ${record.ties}</strong>${solidDetail(finishedTiedTeams)}${liveDetail(liveTiedPicks)}</span>
-              <span class="entry-record-status pending"><strong>Pending ${record.pending}</strong>${solidDetail(pendingDetails)}</span>
-            </div>
-            <span class="entry-record-meta">${total} ${total === 1 ? "pick" : "picks"}</span>
-          </article>`;
-      })
-      .join("");
-  }
-
   function renderDashboard() {
     const context = createGradeContext();
     const player = activePlayer();
@@ -765,7 +683,6 @@
       picks: entry.picks.map(parsePick).filter(Boolean)
     }));
     const uniquePicks = new Map();
-    const entryRows = [];
 
     els.entryCards.innerHTML = "";
     for (const entry of entries) {
@@ -778,7 +695,6 @@
         const row = uniquePicks.get(key);
         if (!row.entryNames.includes(entry.name)) row.entryNames.push(entry.name);
       });
-      entryRows.push({ name: entry.name, grades });
 
       const card = document.createElement("article");
       card.className = "entry-card";
@@ -812,8 +728,6 @@
       `;
       els.entryCards.appendChild(card);
     }
-
-    renderEntryRecords(entryRows);
 
     const rows = [...uniquePicks.values()];
     if (!rows.length) {

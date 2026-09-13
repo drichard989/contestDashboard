@@ -16,7 +16,7 @@ Target hostname:
 - An all-picks view showing each unique pick and the entries using it
 - A checked-in weekly preset that can be loaded through deep links
 - Deep links to the all-picks preset for any player
-- Per-entry won/lost/tied records, with finished teams in the solid category color, live picks shown in parentheses, and pending teams listed by selection
+- Per-entry status summaries plus an all-picks table with duplicate selections combined
 - Configured pick strings such as `Bears -3`, `Texans +0.5`, `Vikings -1.5`
 - Live NFL scores
 - Live possession and down-and-distance when ESPN supplies the current game situation
