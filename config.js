@@ -8,6 +8,14 @@ window.CIRCA_CONFIG = {
   // Avoid leaving the refresh button waiting forever if the endpoint is unavailable.
   requestTimeoutMs: 12000,
 
+  // Player tabs. Each player's entries and picks are stored independently.
+  players: [
+    { id: "michael-daniel", name: "Michael-Daniel" },
+    { id: "rob", name: "Rob" },
+    { id: "ken", name: "Ken" },
+    { id: "ryan", name: "Ryan" }
+  ],
+
   // Unofficial / unsupported ESPN endpoint. No API key is currently required.
   // See README.md and CODEX_HANDOFF.md for caveats and fallback strategy.
   espnScoreboardBase:

@@ -4,6 +4,18 @@
   const CFG = window.CIRCA_CONFIG || {};
   const STORAGE_KEY = "circa-picks-dashboard:v1";
   const DEFAULT_SEASON_TYPE = 2;
+  const FALLBACK_PLAYERS = [
+    { id: "michael-daniel", name: "Michael-Daniel" },
+    { id: "rob", name: "Rob" },
+    { id: "ken", name: "Ken" },
+    { id: "ryan", name: "Ryan" }
+  ];
+  const PLAYER_DEFINITIONS = (Array.isArray(CFG.players) && CFG.players.length ? CFG.players : FALLBACK_PLAYERS)
+    .map((player, index) => ({
+      id: String(player?.id || `player-${index + 1}`).trim(),
+      name: String(player?.name || `Player ${index + 1}`).trim()
+    }))
+    .filter((player, index, players) => player.id && player.name && players.findIndex(item => item.id === player.id) === index);
 
   // ESPN abbreviations plus the common names people tend to paste into a card.
   const TEAMS = [
@@ -50,6 +62,10 @@
 
   const els = {
     entryEditors: document.getElementById("entryEditors"),
+    playerTabs: document.getElementById("playerTabs"),
+    activePlayerLabel: document.getElementById("activePlayerLabel"),
+    activePlayerName: document.getElementById("activePlayerName"),
+    gamesPlayerName: document.getElementById("gamesPlayerName"),
     entryCards: document.getElementById("entryCards"),
     gamesBody: document.getElementById("gamesBody"),
     lastUpdated: document.getElementById("lastUpdated"),
@@ -82,9 +98,13 @@
   function defaultState() {
     const starterEntries = Array.isArray(CFG.starterEntries) ? CFG.starterEntries : [];
     return {
-      entries: starterEntries.length
-        ? starterEntries.map(normalizeEntry)
-        : [{ name: "Entry 1", picks: [] }],
+      players: PLAYER_DEFINITIONS.map((player, index) => ({
+        ...player,
+        entries: index === 0 && starterEntries.length
+          ? starterEntries.map(normalizeEntry)
+          : [{ name: "Entry 1", picks: [] }]
+      })),
+      activePlayerId: PLAYER_DEFINITIONS[0]?.id || "michael-daniel",
       season: validSeason(CFG.defaultSeason),
       seasonType: validSeasonType(CFG.defaultSeasonType),
       week: validWeek(CFG.defaultWeek)
@@ -99,6 +119,11 @@
       name: String(entry?.name || `Entry ${index + 1}`).trim() || `Entry ${index + 1}`,
       picks
     };
+  }
+
+  function normalizeEntries(entries) {
+    const normalized = Array.isArray(entries) ? entries.map(normalizeEntry) : [];
+    return normalized.length ? normalized : [{ name: "Entry 1", picks: [] }];
   }
 
   function validSeason(value) {
@@ -122,12 +147,22 @@
     const fallback = defaultState();
     if (!value || typeof value !== "object") return fallback;
 
-    const entries = Array.isArray(value.entries)
-      ? value.entries.map(normalizeEntry)
-      : fallback.entries;
+    const storedPlayers = Array.isArray(value.players) ? value.players : [];
+    const legacyEntries = Array.isArray(value.entries) ? value.entries : null;
+    const players = PLAYER_DEFINITIONS.map((definition, index) => {
+      const stored = storedPlayers.find(player => (
+        String(player?.id || "") === definition.id || normalize(player?.name) === normalize(definition.name)
+      ));
+      const entries = stored?.entries ?? (!storedPlayers.length && index === 0 ? legacyEntries : null);
+      return { ...definition, entries: normalizeEntries(entries) };
+    });
+    const activePlayerId = players.some(player => player.id === value.activePlayerId)
+      ? value.activePlayerId
+      : players[0]?.id;
 
     return {
-      entries: entries.length ? entries : [{ name: "Entry 1", picks: [] }],
+      players,
+      activePlayerId,
       season: validSeason(value.season),
       seasonType: validSeasonType(value.seasonType),
       week: validWeek(value.week)
@@ -152,6 +187,10 @@
       console.error(error);
       return false;
     }
+  }
+
+  function activePlayer() {
+    return state.players.find(player => player.id === state.activePlayerId) || state.players[0];
   }
 
   function parsePick(line) {
