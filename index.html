@@ -7,24 +7,9 @@
   <meta name="description" content="A personal live dashboard for tracking contest NFL picks against live scores." />
   <title>Contest Picks Live Dashboard</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="style.css?v=20260913-15" />
+  <link rel="stylesheet" href="style.css?v=20260913-16" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand-lockup">
-      <h1>Contest Picks</h1>
-    </div>
-    <div class="top-actions">
-      <div class="font-controls" aria-label="Text size controls">
-        <span id="fontSizeValue" class="font-size-value">Text size</span>
-        <button id="decreaseFontBtn" class="font-size-button" type="button" aria-label="Decrease text size" title="Decrease text size">A−</button>
-        <button id="increaseFontBtn" class="font-size-button" type="button" aria-label="Increase text size" title="Increase text size">A+</button>
-      </div>
-      <span id="lastUpdated" class="last-updated" role="status" aria-live="polite">Waiting for first update</span>
-      <button id="refreshBtn" type="button">Refresh scores</button>
-    </div>
-  </header>
-
   <nav class="player-tabs" aria-label="Player picks">
     <div id="playerTabs" class="player-tabs-inner" role="tablist" aria-label="Choose a player"></div>
   </nav>
@@ -70,6 +55,15 @@
     <p>
       Personal hobby dashboard. Live scores come from an unofficial ESPN web endpoint and may be unavailable or change without notice.
     </p>
+    <div class="footer-controls">
+      <div class="font-controls" aria-label="Text size controls">
+        <span id="fontSizeValue" class="font-size-value">Text size</span>
+        <button id="decreaseFontBtn" class="font-size-button" type="button" aria-label="Decrease text size" title="Decrease text size">A−</button>
+        <button id="increaseFontBtn" class="font-size-button" type="button" aria-label="Increase text size" title="Increase text size">A+</button>
+      </div>
+      <span id="lastUpdated" class="last-updated" role="status" aria-live="polite">Waiting for first update</span>
+      <button id="refreshBtn" type="button">Refresh scores</button>
+    </div>
   </footer>
 
   <script src="config.js?v=20260913-11"></script>
