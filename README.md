@@ -24,7 +24,7 @@ Target hostname:
 - Automatic ATS calculation
 - Covering / losing / push / pending status
 - Margin against the contest line
-- Automatic score refresh every 10 seconds from ESPN; live clocks show ESPN's latest reported value without client-side interpolation, and there is no kickoff countdown
+- Automatic score refresh every 10 seconds from ESPN; live clocks show ESPN's latest reported value without client-side interpolation, and there is no kickoff countdown. The footer warns when a successful ESPN update is more than two minutes old.
 - Desktop text starts larger, with saved A− / A+ size controls
 - Browser remembers the selected player/view and text size; picks remain read-only checked-in data
 - Responsive/mobile layout

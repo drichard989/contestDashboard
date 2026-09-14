@@ -9,6 +9,7 @@
   const DEFAULT_SEASON_TYPE = 2;
   const CURRENT_WEEK_KEY = String(CFG.weekKey || "current");
   const SCORE_REFRESH_MS = Number(CFG.refreshMs) > 0 ? Number(CFG.refreshMs) : 10000;
+  const STALE_SCORE_THRESHOLD_MS = 2 * 60 * 1000;
   const FALLBACK_PLAYERS = [
     { id: "michael-daniel", name: "Michael-Daniel" },
     { id: "rob", name: "Rob" },
@@ -501,9 +502,22 @@
   }
 
   function updateLastUpdated() {
-    els.lastUpdated.textContent = lastSuccessfulUpdate
-      ? `Last successful update ${lastSuccessfulUpdate.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}`
-      : "Waiting for first update";
+    if (!lastSuccessfulUpdate) {
+      els.lastUpdated.classList.remove("stale");
+      els.lastUpdated.textContent = "Waiting for first update";
+      return;
+    }
+
+    const stale = Date.now() - lastSuccessfulUpdate.getTime() >= STALE_SCORE_THRESHOLD_MS;
+    els.lastUpdated.classList.toggle("stale", stale);
+    const timestamp = lastSuccessfulUpdate.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+    els.lastUpdated.textContent = stale
+      ? `⚠ ESPN data may be stale · Last successful update ${timestamp}`
+      : `Last successful update ${timestamp}`;
   }
 
   function setBanner(text, kind) {
@@ -872,6 +886,7 @@
   updateLastUpdated();
   safeRender();
   refreshScores().finally(scheduleScoreRefresh);
+  window.setInterval(updateLastUpdated, 1000);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       safeRender();

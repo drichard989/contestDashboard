@@ -67,6 +67,7 @@ button:disabled { cursor: wait; opacity: .65; }
   text-transform: uppercase;
 }
 .last-updated { color: var(--muted); font-size: .84rem; white-space: nowrap; }
+.last-updated.stale { color: var(--red); font-weight: 850; }
 .font-controls { display: flex; align-items: center; gap: 6px; }
 .font-size-value { color: var(--muted); font-size: .78rem; white-space: nowrap; }
 .font-size-button { min-width: 34px; min-height: 32px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--gray-bg); color: var(--ink); font-size: .86rem; line-height: 1; }
