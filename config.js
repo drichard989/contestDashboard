@@ -64,7 +64,30 @@ const CURRENT_WEEK = {
     Giants: 7,
     Rams: -7
   },
-  playerEntries: {}
+  playerEntries: {
+    "michael-daniel": [
+      {
+        name: "Entry 1",
+        picks: [
+          "Bills -5.5",
+          "Packers -3.5",
+          "Bears -4.5",
+          "Eagles -7",
+          "Chiefs -6.5"
+        ]
+      },
+      {
+        name: "Entry 2",
+        picks: [
+          "Packers -3.5",
+          "Bears -4.5",
+          "Panthers -2.5",
+          "Eagles -7",
+          "Bills -5.5"
+        ]
+      }
+    ]
+  }
 };
 
 const ALL_PICKS_PRESET = CURRENT_WEEK.playerEntries["michael-daniel"] || [];
