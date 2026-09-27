@@ -67,6 +67,16 @@ const CURRENT_WEEK = {
   playerEntries: {
     "michael-daniel": [
       {
+        name: "Entry 1",
+        picks: [
+          "Bengals -3.5",
+          "Panthers -2.5",
+          "Bills -7",
+          "Vikings -1",
+          "Seahawks -7.5"
+        ]
+      },
+      {
         name: "Entry 2",
         picks: [
           "Panthers -2.5",
