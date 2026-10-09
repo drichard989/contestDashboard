@@ -7,87 +7,61 @@
   Keep picks in the format "Team + line". Player keys use the IDs below.
 */
 const CURRENT_WEEK = {
-  key: "2026-week-3",
-  label: "Week 3",
+  key: "2026-week-5",
+  label: "Week 5",
   season: 2026,
   seasonType: 2,
-  week: 3,
+  week: 5,
   circaMatchups: [
-    ["ATL", "GB"],
-    ["SEA", "WSH"],
-    ["CIN", "PIT"],
-    ["NYJ", "DET"],
-    ["TEN", "NYG"],
-    ["NE", "JAX"],
-    ["KC", "MIA"],
-    ["HOU", "IND"],
-    ["CAR", "CLE"],
-    ["LAC", "BUF"],
-    ["MIN", "TB"],
-    ["ARI", "SF"],
-    ["LV", "NO"],
-    ["BAL", "DAL"],
-    ["LAR", "DEN"],
-    ["PHI", "CHI"]
+    ["DAL", "TB"],
+    ["JAX", "PHI"],
+    ["GB", "CHI"],
+    ["TEN", "HOU"],
+    ["MIA", "CIN"],
+    ["NE", "LV"],
+    ["NO", "MIN"],
+    ["NYJ", "CLE"],
+    ["PIT", "IND"],
+    ["WSH", "NYG"],
+    ["LAC", "DEN"],
+    ["ARI", "DET"],
+    ["SEA", "SF"],
+    ["ATL", "BAL"],
+    ["LAR", "BUF"]
   ],
   circaLines: {
-    Falcons: 4.5,
-    Packers: -4.5,
-    Seahawks: -7.5,
-    Commanders: 7.5,
-    Bengals: -3.5,
-    Steelers: 3.5,
-    Jets: 6.5,
-    Lions: -6.5,
-    Titans: 2.5,
-    Giants: -2.5,
-    Patriots: 3,
-    Jaguars: -3,
-    Chiefs: -11.5,
-    Dolphins: 11.5,
-    Texans: -1.5,
-    Colts: 1.5,
-    Panthers: -2.5,
-    Browns: 2.5,
-    Chargers: 7,
-    Bills: -7,
-    Vikings: -1,
-    Bucs: 1,
-    Cardinals: 8.5,
-    "49ers": -8.5,
-    Raiders: 3,
-    Saints: -3,
-    Ravens: -3,
-    Cowboys: 3,
-    Rams: -2.5,
-    Broncos: 2.5,
-    Eagles: -4.5,
-    Bears: 4.5
+    Bucs: 8,
+    Cowboys: -8,
+    Eagles: 7.5,
+    Jaguars: -7.5,
+    Colts: 2.5,
+    Steelers: -2.5,
+    Vikings: -2,
+    Saints: 2,
+    Browns: 1.5,
+    Jets: -1.5,
+    Bengals: -7,
+    Dolphins: 7,
+    Raiders: 3.5,
+    Patriots: -3.5,
+    Giants: 4,
+    Commanders: -4,
+    Texans: -7.5,
+    Titans: 7.5,
+    Broncos: -3.5,
+    Chargers: 3.5,
+    "49ers": 3,
+    Seahawks: -3,
+    Lions: -5.5,
+    Cardinals: 5.5,
+    Bears: -1.5,
+    Packers: 1.5,
+    Ravens: 3.5,
+    Falcons: -3.5,
+    Bills: 3,
+    Rams: -3
   },
-  playerEntries: {
-    "michael-daniel": [
-      {
-        name: "Entry 1",
-        picks: [
-          "Bengals -3.5",
-          "Panthers -2.5",
-          "Bills -7",
-          "Vikings -1",
-          "Seahawks -7.5"
-        ]
-      },
-      {
-        name: "Entry 2",
-        picks: [
-          "Panthers -2.5",
-          "Bengals -3.5",
-          "Seahawks -7.5",
-          "Vikings -1",
-          "Eagles -4.5"
-        ]
-      }
-    ]
-  }
+  playerEntries: {}
 };
 
 const ALL_PICKS_PRESET = CURRENT_WEEK.playerEntries["michael-daniel"] || [];
