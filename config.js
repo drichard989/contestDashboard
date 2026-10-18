@@ -7,84 +7,58 @@
   Keep picks in the format "Team + line". Player keys use the IDs below.
 */
 const CURRENT_WEEK = {
-  key: "2026-week-5",
-  label: "Week 5",
+  key: "2026-week-6",
+  label: "Week 6",
   season: 2026,
   seasonType: 2,
-  week: 5,
+  week: 6,
   circaMatchups: [
-    ["DAL", "TB"],
-    ["JAX", "PHI"],
-    ["GB", "CHI"],
-    ["TEN", "HOU"],
-    ["MIA", "CIN"],
-    ["NE", "LV"],
-    ["NO", "MIN"],
-    ["NYJ", "CLE"],
-    ["PIT", "IND"],
-    ["WSH", "NYG"],
-    ["LAC", "DEN"],
-    ["ARI", "DET"],
-    ["SEA", "SF"],
-    ["ATL", "BAL"],
-    ["LAR", "BUF"]
+    ["ATL", "CHI"],
+    ["CLE", "BAL"],
+    ["IND", "TEN"],
+    ["NE", "NYJ"],
+    ["NYG", "NO"],
+    ["PHI", "CAR"],
+    ["TB", "PIT"],
+    ["JAX", "HOU"],
+    ["LAR", "ARI"],
+    ["KC", "LAC"],
+    ["LV", "BUF"],
+    ["GB", "DAL"],
+    ["DEN", "SEA"],
+    ["SF", "WSH"]
   ],
   circaLines: {
-    Bucs: 8,
-    Cowboys: -8,
-    Eagles: 7.5,
-    Jaguars: -7.5,
-    Colts: 2.5,
+    Seahawks: -2.5,
+    Broncos: 2.5,
+    Texans: 2.5,
+    Jaguars: -2.5,
+    Jets: 7,
+    Patriots: -7,
     Steelers: -2.5,
-    Vikings: -2,
-    Saints: 2,
-    Browns: 1.5,
-    Jets: -1.5,
-    Bengals: -7,
-    Dolphins: 7,
-    Raiders: 3.5,
-    Patriots: -3.5,
-    Giants: 4,
-    Commanders: -4,
-    Texans: -7.5,
-    Titans: 7.5,
-    Broncos: -3.5,
-    Chargers: 3.5,
-    "49ers": 3,
-    Seahawks: -3,
-    Lions: -5.5,
-    Cardinals: 5.5,
-    Bears: -1.5,
-    Packers: 1.5,
-    Ravens: 3.5,
-    Falcons: -3.5,
-    Bills: 3,
-    Rams: -3
+    Bucs: 2.5,
+    Ravens: -5.5,
+    Browns: 5.5,
+    Bears: 0,
+    Falcons: 0,
+    Titans: 7,
+    Colts: -7,
+    Panthers: -1,
+    Eagles: 1,
+    Saints: -1,
+    Giants: 1,
+    Cardinals: 12.5,
+    Rams: -12.5,
+    Bills: -4.5,
+    Raiders: 4.5,
+    Chargers: 8,
+    Chiefs: -8,
+    Cowboys: 1,
+    Packers: -1,
+    Commanders: 7.5,
+    "49ers": -7.5
   },
-  playerEntries: {
-    "michael-daniel": [
-      {
-        name: "Entry 1",
-        picks: [
-          "Browns +1.5",
-          "Saints +2",
-          "Commanders -4",
-          "Bears -1.5",
-          "Broncos -3.5"
-        ]
-      },
-      {
-        name: "Entry 2",
-        picks: [
-          "Browns +1.5",
-          "Commanders -4",
-          "Broncos -3.5",
-          "Lions -5.5",
-          "Bears -1.5"
-        ]
-      }
-    ]
-  }
+  playerEntries: {}
 };
 
 const ALL_PICKS_PRESET = CURRENT_WEEK.playerEntries["michael-daniel"] || [];
