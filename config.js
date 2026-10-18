@@ -58,7 +58,20 @@ const CURRENT_WEEK = {
     Commanders: 7.5,
     "49ers": -7.5
   },
-  playerEntries: {}
+  playerEntries: {
+    "michael-daniel": [
+      {
+        name: "Entry 2",
+        picks: [
+          "Panthers -1",
+          "Bills -4.5",
+          "Jaguars -2.5",
+          "Falcons PK",
+          "Colts -7"
+        ]
+      }
+    ]
+  }
 };
 
 const ALL_PICKS_PRESET = CURRENT_WEEK.playerEntries["michael-daniel"] || [];
