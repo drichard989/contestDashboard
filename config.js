@@ -69,6 +69,16 @@ const CURRENT_WEEK = {
           "Bengals -3.5",
           "Vikings +3"
         ]
+      },
+      {
+        name: "Entry 1",
+        picks: [
+          "Lions -3",
+          "Chiefs -3.5",
+          "Vikings +3",
+          "49ers -4",
+          "Bengals -3.5"
+        ]
       }
     ]
   }
